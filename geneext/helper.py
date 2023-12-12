@@ -1129,6 +1129,14 @@ def append_before_ext(filename, suffix):
         return f"{name}.{suffix}{ext}"
     return filename
 
+def get_genic_bed(genefile,outfile):
+    # takes a genome annotation file, outputs a bed file withs genes
+    db = gffutils_import_gxf(genefile)
+    with open(outfile,'w') as ofile:
+        for i,gene in enumerate(db.features_of_type("gene")):
+            ofile.write("\t".join([gene.chrom,str(gene.start),str(gene.end),gene.id,"0",gene.strand])+'\n')
+
+
 def get_intronic_bed(genefile = None, tempdir = None, verbose = 0):
     cmd = "awk '$3==@exon@' %s | bedtools sort -i - | bedtools merge -i - > %s/reg.exonic.bed" % (genefile,tempdir)
     cmd = cmd.replace('@','"')
@@ -1388,7 +1396,8 @@ def select_longest_transcript(infile= None,outfile = None,infmt = None,outfmt = 
         cnt += 1 
     if verbose:
         print('%s genes - %s transcripts' % (cnt,len(g2t)))
-        print('%s genes with no transcripts!' % not_cnt)
+        if not_cnt > 0:  
+            print('%s genes with no transcripts!' % not_cnt)
     
     
     

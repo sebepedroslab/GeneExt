@@ -580,7 +580,7 @@ if __name__ == "__main__":
 
             helper.select_longest_transcript(infile = genefile,outfile = new_genefile,infmt = infmt,outfmt = outfmt,verbose = verbose)
             if verbose:
-                print('done')
+                print('Done selecting the longest transcript per gene.')
             genefile = new_genefile
 
         # Fix 5'overlaps 
@@ -596,6 +596,27 @@ if __name__ == "__main__":
                 print("Fixed 5' overlaps in genes: %s -> %s" % (genefile,new_genefile))
             genefile = new_genefile
 
+    # SJ DEV: what would be an appropriate place to put this function 
+    ##################################################
+    # Input:
+    # splice junction file 
+    # Output:
+    # a table of gene-to-peak mappings 
+    # (this should then become an optional argument for gene extension part of the tool) 
+
+    ##################################################
+    # if the SJ file is provided:
+    # 1. filter the splice junction file 
+    # 2. link genes to DOWNSTREAM peaks using splice junctions   
+    # 3. Extend the genes to the most downstream peaks (as a continuous regions?)
+    # 4. The rest of the gene extensions should proceed as specified before.   
+    ##################################################
+        do_sj = True
+        if do_sj:
+            genic_bed = tempdir + '/' + 'sj.genic.bed'
+            helper.get_genic_bed(genefile = genefile,outfile = genic_bed)
+            
+    #quit() #sj
     console.print(Panel.fit("[bold blue]Execution[/bold blue]", border_style="bold blue"))
     ##################################################
     if not do_fix_only:

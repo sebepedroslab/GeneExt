@@ -19,7 +19,7 @@ conda activate geneext
 Once dependencies are installed, try running `GeneExt` with sample data:
 
 ```bash
-python geneext.py -g test_data/annotation.gtf -b test_data/alignments.bam -o result.gtf
+python geneext.py -g test_data/annotation.gtf -b test_data/alignments.bam -o result.gtf --peak_perc 0
 ```
 
 Please, first test whether the tool works properly on the test data! 
