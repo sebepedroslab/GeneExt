@@ -21,18 +21,18 @@ Program: GeneExt
 Version: 1.0
 """,
                            formatter_class=RawTextHelpFormatter)
-parser.add_argument('-g', default= None,help = 'Genome .gtf/.gff/.bed file.' ,required = True) 
-parser.add_argument('-b', default= None,help = 'Input .bam file.')
-parser.add_argument('-p', default= None,help = 'Peaks .bed file. Incompatible with -b.\nIf provided, extension is performed using specified coordinates in .bed format.\n(Can be seful in cases of FLAM-seq / Nano-3P-seq data or when manual filtering of the peaks is needed.)') 
-parser.add_argument('-o', default = None, help = 'Output annotation file.\n\n\n================ Additional arguments ================\n',required = False)
-parser.add_argument('-m', default = None, help = 'Maximal distance for gene extension.\nIf not set, a median length of gene (genomic span!) is used.')
+parser.add_argument('-g','--genome', default= None,help = 'Genome .gtf/.gff/.bed file.' ,required = True) 
+parser.add_argument('-b','--bam', default= None,help = 'Input .bam file.')
+parser.add_argument('-p','--peaks', default= None,help = 'Peaks .bed file. Incompatible with -b.\nIf provided, extension is performed using specified coordinates in .bed format.\n(Can be seful in cases of FLAM-seq / Nano-3P-seq data or when manual filtering of the peaks is needed.)') 
+parser.add_argument('-o','--output', default = None, help = 'Output annotation file.\n\n\n================ Additional arguments ================\n',required = False)
+parser.add_argument('-m','--maxdist', default = None, help = 'Maximal distance for gene extension.\nIf not set, a median length of gene (genomic span!) is used.')
 
 parser.add_argument('-inf', default = None, help = 'Input genes file format, if None, will be guessed from a file extension.')
 parser.add_argument('-ouf', default = None, help = 'Output file format, if not given, will be guessed from a file extension.')
 parser.add_argument('-t', default = None, help = 'Temporary directory. [tmp_{output_file_prefix}]')
 parser.add_argument('-tag', default = str('GeneExt'), help = 'Tag to be added to the fake gene source and IDs so these can be easily identified downstream. [GE]')
-parser.add_argument('-v', default = int(0), help = 'Verbosity level. [0],1,2,3')
-parser.add_argument('-j', default = '1', help = 'Number of parallel cores. [1]')
+parser.add_argument('-v','--verbose', default = int(0), help = 'Verbosity level. [0],1,2,3')
+parser.add_argument('-j','--jobs', default = '1', help = 'Number of parallel cores. [1]')
 parser.add_argument('--output_mode', default = 'new_transcript', help = 'How to extend the gene (only for .gff/.gtf files) [new_transcript]\n\t* new_transcript - creates a new transcript feature with the last exon extended\n\t* new_exon - creates an extended last exon')
 parser.add_argument('--clip_strand',default = 'sense',help = 'How to treat gene extension overlaps.\nsense - default,restrict overlaps into downstream genes on the same strand\nboth - restrict overlaps regardless of the strand.')
 parser.add_argument('--clip_5prime', action='store_true', help = 
@@ -45,20 +45,20 @@ Since those can correspond to missing 3prime UTRs or missing genes, we suggest k
 Orphan peaks are merged into orphan peak clusters by distance and then are kept as if they were genes. 
 
 ''')
-parser.add_argument('--orphan',action='store_true', help = 'Whether to add orphan peaks')
-parser.add_argument('--orphan_maxdist', default = None, help = 'Orphan peak merging: Maximum distance between orphan peaks to merge. [75-th percentile of intron length, bp]')
-parser.add_argument('--orphan_maxsize', default = None, help = 'Orphan peak merging: Maximum size of an orphan peak cluster. Default: [median gene length, bp]')
+parser.add_argument('-orphan','--orphan',action='store_true', help = 'Whether to add orphan peaks')
+parser.add_argument('-orphan_maxdist','--orphan_maxdist', default = None, help = 'Orphan peak merging: Maximum distance between orphan peaks to merge. [75-th percentile of intron length, bp]')
+parser.add_argument('-orphan_maxsize','--orphan_maxsize', default = None, help = 'Orphan peak merging: Maximum size of an orphan peak cluster. Default: [median gene length, bp]')
 #parser.add_argument('--mean_coverage', action='store_true', help = 'Whether to use mean coverage for peak filtering.\nMean coverage = [ # mapping reads]/[peak width].')
-parser.add_argument('--peak_perc',default = 25, help = 'Coverage threshold (percentile of macs2 genic peaks coverage). [1-99, 25 by default].\nAll peaks called with macs2 are required to have a coverage AT LEAST as N-th percentile of the peaks falling within genic regions.\nThis parameter allows to filter out the peaks based on the coverage BEFORE gene extension.')
-parser.add_argument('--nocluster', action='store_true', help = 'Do not merge orphan peaks based on distance.\n\n\n================ Miscellaneous ================\n')
+parser.add_argument('-peak_perc','--peak_perc',default = 25, help = 'Coverage threshold (percentile of macs2 genic peaks coverage). [1-99, 25 by default].\nAll peaks called with macs2 are required to have a coverage AT LEAST as N-th percentile of the peaks falling within genic regions.\nThis parameter allows to filter out the peaks based on the coverage BEFORE gene extension.')
+parser.add_argument('-nocluster','--nocluster', action='store_true', help = 'Do not merge orphan peaks based on distance.\n\n\n================ Miscellaneous ================\n')
 
-parser.add_argument('--subsamplebam',default = None, help = 'If set, will subsample bam to N reads before the peak calling. Useful for large datasets. Bam file should be indexed.\nDefault: None')
+parser.add_argument('-subsamplebam','--subsamplebam',default = None, help = 'If set, will subsample bam to N reads before the peak calling. Useful for large datasets. Bam file should be indexed.\nDefault: None')
 #parser.add_argument('--report', action='store_true', help = 'Use this option to generate a PDF report.')
-parser.add_argument('--keep_intermediate_files', action='store_true', help = 'Use this to keep .bam and other temporary files in the a temporary directory. Useful for troubleshooting.')
+parser.add_argument('-keep','--keep_intermediate_files', action='store_true', help = 'Use this to keep .bam and other temporary files in the a temporary directory. Useful for troubleshooting.')
 #parser.add_argument('--estimate', action='store_true', help = 'Use this to just estimate intergenic read proportion.\nUseful for quick checking intergenic mapping rate.')
 #parser.add_argument('--onlyfix', action='store_true', help = 'If set, GeneExt will only try to fix the annotation, no extension is performed.')
-parser.add_argument('--force', action='store_true', help = 'If set, GeneExt will ignore previously computed files and will re-run everythng from scratch.')
-parser.add_argument('--rerun', action='store_true', help = 'If set, GeneExt will try to re-run the analysis using previously computed files it finds in the temporary directory (subsampled data, MACS2 results, peaks with coverage etc.).')
+parser.add_argument('-force','--force', action='store_true', help = 'If set, GeneExt will ignore previously computed files and will re-run everythng from scratch.')
+parser.add_argument('-rerun','--rerun', action='store_true', help = 'If set, GeneExt will try to re-run the analysis using previously computed files it finds in the temporary directory (subsampled data, MACS2 results, peaks with coverage etc.).')
 
 
 
@@ -162,7 +162,8 @@ def run_orphan():
         if verbose:
             print('Orphan peaks: merging by distance.')
         orphan_merged_bed  = tempdir + '/' + 'orphan_merged.bed'
-        helper.merge_orphan_distance(orphan_bed = orphan_bed,orphan_merged_bed = orphan_merged_bed,genic_bed = genefile_ext_bed,tempdir = tempdir,maxdist = orphan_maximum_distance,maxsize = orphan_maximum_size, verbose = verbose)
+        chrnamesfile = tempdir + '/chr_names.txt'
+        helper.merge_orphan_distance(orphan_bed = orphan_bed,chr_names = chrnamesfile,orphan_merged_bed = orphan_merged_bed,genic_bed = genefile_ext_bed,tempdir = tempdir,maxdist = orphan_maximum_distance,maxsize = orphan_maximum_size, verbose = verbose)
         if verbose:
             print('Orphan peaks: merged peaks - %s' % orphan_merged_bed)
         helper.add_orphan_peaks(infile = outputfile,peaksbed=orphan_merged_bed,fmt = outfmt,verbose=verbose,tag = tag) 
@@ -219,7 +220,7 @@ def estimate_mapping(tempdir = None,bamfile = None,genefile = None,infmt = None,
         chrsizesfile = tempdir + '/chr_sizes.tab'
 
         # prepare the files
-        helper.get_chrsizes(tempdir = tempdir, bamfile = bamfile, outfile = chrsizesfile, verbose = verbose)
+        helper.get_chr_sizes(tempdir = tempdir, bamfile = bamfile, outfile = chrsizesfile, verbose = verbose)
         helper.get_genic_beds(genomeanno=genefile,genomechr=chrsizesfile,verbose = verbose,infmt = infmt,genicbed=genicbed,intergenicbed=intergenicbed)
 
         Ntot = helper.count_reads(bamfile=bamfile,bed = None,flags = '',threads=threads,verbose = verbose)
@@ -367,6 +368,7 @@ if __name__ == "__main__":
     helper.print_logo(console)
 
     args = parser.parse_args()
+    
     outputfile = args.o
     if not outputfile:
         pipeline_error_print('Please, provide the output file name (-o)!')
@@ -596,6 +598,9 @@ if __name__ == "__main__":
                 print("Fixed 5' overlaps in genes: %s -> %s" % (genefile,new_genefile))
             genefile = new_genefile
 
+        # Re-order genefile by the order of chromosomes 
+        helper.reorder_by_bam(genefile = genefile,bamfile = bamfile,tempdir = tempdir,verbose = verbose)
+
     # SJ DEV: what would be an appropriate place to put this function 
     ##################################################
     # Input:
@@ -622,6 +627,13 @@ if __name__ == "__main__":
     if not do_fix_only:
         # parse input file format: 
         if not do_estimate_only:    
+            #-1. Index input bam 
+            if bamfile:
+                if not os.path.isfile(bamfile + '.bai'):
+                    if verbose > 0:
+                        print('Indexing %s' % bamfile)
+                    helper.index_bam(bamfile,verbose = verbose,threads=threads)
+
             # if -m is not set, get a median gene size:
             if not maxdist:
                 maxdist = helper.get_quantile_gene_length(inputfile = genefile,fmt = infmt,q = 0.5)
@@ -634,18 +646,12 @@ if __name__ == "__main__":
                     if verbose:
                         print('Maximum size of orphan clusters is set to %s-th quantile of the gene lengths: %s' % (round(maxsize_quant*100),round(orphan_maximum_size)))
                 if not orphan_maximum_distance:
-                    helper.get_intronic_bed(genefile = genefile, tempdir = tempdir, verbose = verbose)
+                    helper.get_intronic_bed(genefile = genefile,bamfile = bamfile, tempdir = tempdir, verbose = verbose)
                     bedfile = tempdir + '/reg.intronic.bed'
                     orphan_maximum_distance = round(helper.get_bed_length_q(bedfile,maxdist_quant))
                     if verbose:
                         print('Maximum distance between peaks is set to %s-th quantile of intron lengths: %s' % (round(maxdist_quant*100),round(orphan_maximum_distance)))
 
-        #-1. Index input bam 
-        if bamfile:
-            if not os.path.isfile(bamfile + '.bai'):
-                if verbose > 0:
-                    print('Indexing %s' % bamfile)
-                helper.index_bam(bamfile,verbose = verbose,threads=threads)
 
         # 0. MAPPING - not implemented     
             if do_mapping:
@@ -688,6 +694,11 @@ if __name__ == "__main__":
                     helper.run_macs2(tempdir+'/' + 'plus.bam','plus',tempdir,verbose = verbose)
                     helper.run_macs2(tempdir+'/' + 'minus.bam','minus',tempdir,verbose = verbose)
                     helper.collect_macs_beds(outdir = tempdir,outfile = peaksfile,verbose = verbose)
+                    # reorder by the genome file 
+                    chrnamesfile = tempdir + '/chr_names.txt'
+                    #peaskfile_ordered = peaksfile.replace('.bed','.ordered.bed')
+                    helper.get_chr_names(bamfile, chrnamesfile,verbose = verbose)
+                    helper.order_bed(peaksfile,peaksfile,chrnamesfile,verbose = verbose)
                     console.print('done',style = 'bold green')
             else:
                 print('Skipping macs2. Running gene extension with %s and %s.' % (peaksfile,genefile))

@@ -83,6 +83,7 @@ def collect_macs_beds(outdir,outfile,verbose = False):
         print('Done collecting beds: %s' % (outfile))
 
 
+
 def index_bam(infile,verbose = False,threads = 1):
 
     cmd = 'samtools index -@ %s %s' % (threads,infile)
@@ -1039,7 +1040,7 @@ def add_orphan_peaks(infile = None,peaksbed = None,fmt = None,tmp_outfile = None
 
 
 
-def merge_orphan_distance(orphan_bed = None,orphan_merged_bed = None,genic_bed = None,tempdir = None,maxsize = None,maxdist = None,verbose = False):
+def merge_orphan_distance(orphan_bed = None,chr_names = None,orphan_merged_bed = None,genic_bed = None,tempdir = None,maxsize = None,maxdist = None,verbose = False):
     """This function merges orphan peaks by distance"""
     pref = 'Orphan merging: '
 
@@ -1092,10 +1093,13 @@ def merge_orphan_distance(orphan_bed = None,orphan_merged_bed = None,genic_bed =
         #    print('Running:\n\t%s' % cmd)
         #ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
-    cmd = """bedtools merge -i %s -s -d %s -c 4,5,6 -o distinct,max,distinct | awk 'BEGIN{OFS="\t";cnt=1}$3-$2<=%s {if($4~/,/){$4="peak.cl"cnt;cnt+=1};print $0}' > %s""" % (orphan_bed,maxdist,round(maxsize),orphan_merged_bed)
+    cmd = """bedtools sort -i %s -g %s | bedtools merge -i - -s -d %s -c 4,5,6 -o distinct,max,distinct | awk 'BEGIN{OFS="\t";cnt=1}$3-$2<=%s {if($4~/,/){$4="peak.cl"cnt;cnt+=1};print $0}' > %s""" % (orphan_bed,chr_names,maxdist,round(maxsize),orphan_merged_bed)
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    # sort just in case 
+
+    #order_bed(orphan_merged_bed,orphan_merged_bed,chrfile,verbose = 0)
 
 
 # get median length of the gene:
@@ -1136,25 +1140,45 @@ def get_genic_bed(genefile,outfile):
         for i,gene in enumerate(db.features_of_type("gene")):
             ofile.write("\t".join([gene.chrom,str(gene.start),str(gene.end),gene.id,"0",gene.strand])+'\n')
 
+def reorder_by_bam(genefile = None,bamfile = None,tempdir = None,verbose = 0):
+    chrsizefile = tempdir + '/chr_sizes.tsv'
+    get_chr_sizes(bamfile = bamfile,outfile = chrsizefile)
+    cmd = "bedtools sort -i %s -g %s > %s; mv %s %s" % (genefile,chrsizefile,genefile + '.reord',genefile + '.reord',genefile)
+    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if verbose > 0:
+        print('Done reordering genefile.')
 
-def get_intronic_bed(genefile = None, tempdir = None, verbose = 0):
-    cmd = "awk '$3==@exon@' %s | bedtools sort -i - | bedtools merge -i - > %s/reg.exonic.bed" % (genefile,tempdir)
+def order_bed(infile,outfile,chrfile,verbose = 0):
+    if infile != outfile:
+        cmd = "bedtools sort -i %s -g %s > %s" % (infile,chrfile,outfile)
+    else:
+        cmd = "bedtools sort -i %s -g %s > %s.tmp; mv  %s.tmp %s" % (infile,chrfile,outfile,outfile,outfile)
+    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if verbose > 1 :
+        print('Running:\n\t%s' % cmd)
+
+def get_intronic_bed(genefile = None,bamfile = None, tempdir = None, verbose = 0):
+    
+    get_chr_sizes(bamfile = bamfile,outfile = tempdir + '/chr_sizes.tsv')
+    # sort by the chromosomes in the bam
+    cmd = "awk '$3==@exon@' %s | bedtools sort -i - | bedtools merge -i - | bedtools sort -i - -g %s/chr_sizes.tsv  > %s/reg.exonic.bed" % (genefile,tempdir,tempdir)
     cmd = cmd.replace('@','"')
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     
-    cmd = "awk '$3==@gene@' %s | bedtools sort -i - | bedtools merge -i - | bedtools sort -i - > %s/reg.genic.bed" % (genefile,tempdir)
+    # sort by the chromosomes in the bam
+    cmd = "awk '$3==@gene@' %s | bedtools sort -i - | bedtools merge -i - | bedtools sort -i - -g %s/chr_sizes.tsv  > %s/reg.genic.bed" % (genefile,tempdir,tempdir)
     cmd = cmd.replace('@','"')
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
-    cmd = "awk '$3==@gene@ {print $1@\t@$5}' %s | sort -k1,1 -k2,2rn | awk '{if($1 in seen ==0){m[$1]=$2;seen[$1]=1}}END{for(k in m){print k@\t@m[k]}}' > %s/chr_sizes.tsv" % (genefile,tempdir)
-    cmd = cmd.replace('@','"')
-    if verbose > 1 :
-        print('Running:\n\t%s' % cmd)
-    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    #cmd = "awk '$3==@gene@ {print $1@\t@$5}' %s | sort -k1,1 -k2,2rn | awk '{if($1 in seen ==0){m[$1]=$2;seen[$1]=1}}END{for(k in m){print k@\t@m[k]}}' > %s/chr_sizes.tsv" % (genefile,tempdir)
+    #cmd = cmd.replace('@','"')
+    #if verbose > 1 :
+    #    print('Running:\n\t%s' % cmd)
+    #ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
     cmd = "bedtools complement -i %s/reg.genic.bed -g %s/chr_sizes.tsv  > %s/reg.intergenic.bed" % (tempdir,tempdir,tempdir)
     if verbose > 1 :
@@ -1201,12 +1225,22 @@ def subsample_bam(inputbam = None,outputbam = None,nreads = None,verbose = True,
 ###################### Mapping estimate #####################
 # Estimate intergenic mapping for an new annotation  
 # create a chromosome size file - should be another function
-def get_chrsizes(tempdir = None,bamfile = None,outfile = None,verbose = False):
+def get_chr_sizes(bamfile = None,outfile = None,verbose = False):
+    if not os.path.exists(bamfile + '.bai'):
+        quit('Index the bam file!') 
     cmd = "samtools idxstats %s | cut -f 1-2 | awk '$2!=0' > %s" % (bamfile,outfile)
     cmd = cmd.replace('__','"')
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+
+def get_chr_names(bamfile = None,outfile = None,verbose = False):
+    cmd = "samtools idxstats %s | cut -f 1 > %s" % (bamfile,outfile)
+    cmd = cmd.replace('__','"')
+    if verbose > 1 :
+        print('Running:\n\t%s' % cmd)
+    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+
 
 def get_genic_beds(genomeanno = None,genomechr = None,genicbed = None,intergenicbed = None,verbose = False,infmt = None):
     """Splits the genome into bed files with genic and intergenic regions"""
