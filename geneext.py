@@ -369,31 +369,31 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    outputfile = args.o
+    outputfile = args.output
     if not outputfile:
         pipeline_error_print('Please, provide the output file name (-o)!')
 
-    bamfile = args.b
+    bamfile = args.bam
 
     tempdir = args.t
     
-    verbose = int(args.v)
+    verbose = int(args.verbose)
 
     # for console printing 
     if not verbose:
         end = " "
     else:
         end = "\n"
-    peaksfile = args.p
-    genefile = args.g 
+    peaksfile = args.peaks
+    genefile = args.genome 
     
     
-    maxdist = args.m
+    maxdist = args.maxdist
     #extension_mode = args.e # the option has been removed for clarity 
     extension_mode = 'new_transcript'
     #extension_mode = 'new_exon'
 
-    threads = int(args.j)
+    threads = int(args.jobs)
     tag = args.tag
     clip_mode = args.clip_strand
 
@@ -404,7 +404,7 @@ if __name__ == "__main__":
 
     # pipeline execution:
     do_mapping = False
-    do_macs2 = args.b is not None  
+    do_macs2 = args.bam is not None  
     do_subsample = args.subsamplebam is not None
     #do_estimate = args.estimate # the option has been removed for the sake of clarity 
     do_estimate = False # DEV
