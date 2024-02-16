@@ -374,7 +374,6 @@ if __name__ == "__main__":
         pipeline_error_print('Please, provide the output file name (-o)!')
 
     bamfile = args.bam
-
     tempdir = args.t
     
     verbose = int(args.verbose)

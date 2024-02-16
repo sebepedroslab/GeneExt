@@ -1227,7 +1227,11 @@ def subsample_bam(inputbam = None,outputbam = None,nreads = None,verbose = True,
 # create a chromosome size file - should be another function
 def get_chr_sizes(bamfile = None,outfile = None,verbose = False):
     if not os.path.exists(bamfile + '.bai'):
-        quit('Index the bam file!') 
+        if verbose > 1:
+            print("Indexing %s" % bamfile)
+        index_bam(bamfile,verbose = verbose,threads=1)
+        quit()
+        #quit('Index the bam file!') 
     cmd = "samtools idxstats %s | cut -f 1-2 | awk '$2!=0' > %s" % (bamfile,outfile)
     cmd = cmd.replace('__','"')
     if verbose > 1 :
