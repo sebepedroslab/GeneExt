@@ -1141,9 +1141,12 @@ def get_genic_bed(genefile,outfile):
             ofile.write("\t".join([gene.chrom,str(gene.start),str(gene.end),gene.id,"0",gene.strand])+'\n')
 
 def reorder_by_bam(genefile = None,bamfile = None,tempdir = None,verbose = 0):
+    # A crutch so that bedtools doesn't fail due to a different file order 
     chrsizefile = tempdir + '/chr_sizes.tsv'
     get_chr_sizes(bamfile = bamfile,outfile = chrsizefile)
     cmd = "bedtools sort -i %s -g %s > %s; mv %s %s" % (genefile,chrsizefile,genefile + '.reord',genefile + '.reord',genefile)
+    if verbose > 1:
+        print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     if verbose > 0:
         print('Done reordering genefile.')
@@ -1410,32 +1413,38 @@ def mRNA2transcript(infile = None,outfile = None,verbose = False):
 
 ######################### Longest transcript per gene ########################
 
-def select_longest_transcript(infile= None,outfile = None,infmt = None,outfmt = None,verbose = False):
-    db = gffutils_import_gxf(infile,merge_strategy="merge",verbose = 0) # 4.12.2023: try merging genes with identical IDs
+def select_longest_transcript(infile= None,outfile = None,infmt = None,outfmt = None,verbose = False,removed_log = None):
+    db = gffutils_import_gxf(infile,merge_strategy="create_unique",verbose = 0) 
+    # 4.12.2023: try merging genes with identical IDs; 25.02.24 - infers non-existing gene
+    # 1.03.2024: missing functionality for gff.
     # Create a dictionary to store the longest transcript for each gene
     g2tid = {}
     g2t = {}
     # Iterate over all genes in the database
     cnt = 1
     not_cnt = 0
-    for gene in db.features_of_type('gene'):
-        if not gene.id and infmt == 'gtf': 
-            gene.id = gene[['gene_id']]
-        transcripts = [x for x in db.children(gene, featuretype='transcript')]
-        if len(transcripts)>0:
-            lengths = {x.id:x.end-x.start for x in transcripts}
-            t2model= {x.id:x for x in transcripts}
-            g2tid[gene.id] = max(lengths, key=lengths.get)
-            g2t[gene.id] = t2model[max(lengths, key=lengths.get)]
-        else:
-            if(verbose > 2):
-                print('select_longest_transcript: no transcripts found for gene %s!' % gene.id)
-            not_cnt += 1
-        cnt += 1 
-    if verbose:
-        print('%s genes - %s transcripts' % (cnt,len(g2t)))
-        if not_cnt > 0:  
-            print('%s genes with no transcripts!' % not_cnt)
+    with open(removed_log, "w") as removed_genes_file:
+        for gene in db.features_of_type('gene'):
+            if not gene.id and infmt == 'gtf': 
+                gene.id = gene[['gene_id']]
+            elif not gene.id and infmt == 'gff':
+                gene.id = gene[['ID']]
+            transcripts = [x for x in db.children(gene, featuretype='transcript')]
+            if len(transcripts)>0:
+                lengths = {x.id:x.end-x.start for x in transcripts}
+                t2model= {x.id:x for x in transcripts}
+                g2tid[gene.id] = max(lengths, key=lengths.get)
+                g2t[gene.id] = t2model[max(lengths, key=lengths.get)]
+            else:
+                if(verbose > 2):
+                    print('select_longest_transcript: no transcripts found for gene %s!' % gene.id)
+                removed_genes_file.write(gene.id + "\tno transcript\n")
+                not_cnt += 1
+            cnt += 1 
+        if verbose:
+            print('%s genes - %s transcripts' % (cnt,len(g2t)))
+            if not_cnt > 0:  
+                print('%s genes with no transcripts!\nWritten to %s' % (not_cnt,removed_log))
     
     
     
@@ -1617,6 +1626,9 @@ def clip5_process_gene(gene,genes,db,verbose = False,tag = '_5clip'):
                     else:
                         if verbose > 2:
                             print('Child feature is fully contained within a downstream gene - OMITTING:\n%s\n%s' % (str(child),str(ovgene)))
+#                            with open(removed_log, "a") as removed_genes_file:
+#                                removed_genes_file.write(gene.id + "\tno transcript\n")
+
                         pass
                 else:
                     if verbose > 2:
@@ -1631,7 +1643,7 @@ def clip5_process_gene(gene,genes,db,verbose = False,tag = '_5clip'):
         return(outstr,logstr)
 
 
-def clip5_worker_process(genes, infile, i, results,logs,verbose,tag):
+def clip5_worker_process(genes, infile, i, results,logs,verbose,tag,removed_log = None):
     db = gffutils.create_db(
         infile,
         ":memory:",
@@ -1675,8 +1687,6 @@ def clip_5_overlaps(infile = None,outfile = None,threads = 1,verbose = False,tag
 
     db = gffutils_import_gxf(infile,verbose = False)
 
-
-
     genes = [x for x in db.features_of_type("gene")]
     print("%s genes loaded." % len(genes))
     # Split the genes into chunks for each worker process
@@ -1712,3 +1722,59 @@ def clip_5_overlaps(infile = None,outfile = None,threads = 1,verbose = False,tag
         for log in logs:
             if len(log)>0:
                 outf.write(''.join(log))
+
+
+
+# Plot gene extensions 
+def plot_extensions(infile,outfile,verbose = 0):
+    cmd='Rscript geneext/plot_extensions.R %s %s' % (infile,outfile)
+    if verbose > 1:
+        print('Running:\n\t%s' % cmd)
+    subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+
+def plot_peaks(genic,noov,outfile,peak_perc,verbose = 0):
+    cmd='Rscript geneext/peak_density.R %s %s %s %s ' % (genic,noov,outfile,peak_perc)
+    if verbose > 1:
+        print('Running:\n\t%s' % cmd)
+    subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+
+# Check if the file is present and has a content:
+
+
+class FileSizeError(Exception):
+    pass
+
+def check_file_size(filename,verbose = 0):
+    """
+    Check the size of a file and raise a FileSizeError if the file size is 0.
+
+    Parameters:
+        filename (str): The path to the file to be checked.
+
+    Raises:
+        FileSizeError: If the file size is 0.
+        FileNotFoundError: If the file does not exist.
+    """
+    # Check if the file exists
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"File '{filename}' does not exist.")
+
+    # Get the size of the file
+    file_size = os.path.getsize(filename)
+
+    # Check if the file size is 0
+    if file_size == 0:
+        raise FileSizeError(f"File '{filename}' is empty.")
+    
+    else:
+        if verbose > 1:
+            print('%s size: %s' % (filename,file_size))
+
+# Example usage:
+#try:
+#    check_file_size(file_path)
+#    print(f"The size of the file '{file_path}' is not 0.")
+#except FileSizeError as e:
+#    print(e)
+#except FileNotFoundError as e:
+#    print(e)

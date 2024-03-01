@@ -21,8 +21,12 @@ Once dependencies are installed, try running `GeneExt` with sample data:
 ```bash
 python geneext.py -g test_data/annotation.gtf -b test_data/alignments.bam -o result.gtf --peak_perc 0
 ```
-(Note: `--peak_perc 0` is set to 0 to disable peak filtering as the test dataset is too small).
+Note1: `--peak_perc 0` is set to 0 to disable peak filtering as the test dataset is too small.  
+Note2: `GeneExt` has been mostly tested on `gtf`-formatted files. Please, use `gtf`, if possible.     
+
+
 Please, first test whether the tool works properly on the test data! 
+
 
 For details on how to obtain alignment file, please refer to the [manual](Manual.md).   
 If problems persist, don't hesitate to contact the authors.

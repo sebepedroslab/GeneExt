@@ -322,7 +322,7 @@ def run_genefile_fix(genefile,infmt):
             helper.mRNA2transcript(infile = genefile,outfile = new_genefile, verbose = verbose)
             genefile = new_genefile
             if verbose > 0:
-                print("New file name: %s" % genefile)
+                print("Added transcript features. New file name: %s" % genefile)
         else:
             pipeline_error_print("Missing 'transcript' or 'mRNA' features in the genome annotation file %s!" % genefile)
             quit()
@@ -350,7 +350,7 @@ def run_genefile_fix(genefile,infmt):
             print('Fix done, annotation with gene features: %s' % new_genefile )
         genefile = new_genefile
         if verbose > 0:
-            print("New file name: %s" % genefile)
+            print("Added gene feature names. New file name: %s" % genefile)
     return(genefile)
     
 
@@ -446,7 +446,6 @@ if __name__ == "__main__":
     write_original_transcript = False # whether to write down the original transcript features
 #################################################################
 
-
     scriptloc = os.path.dirname(os.path.realpath(__file__))
     callcmd = 'python ' + os.path.basename(__file__) + ' '+ " ".join(["-"+str(k)+' '+str(v) for k,v in zip([arg for arg in vars(args)],[getattr(args,arg) for arg in vars(args)]) if v ])
     if verbose:
@@ -456,8 +455,7 @@ if __name__ == "__main__":
 
     # If fix_only set - report only doing genome annotation fixes:
     if do_fix_only:
-        print('================================================')
-        print("CAVE: --onlyfix is set. Only fixing the genome annotation file %s, no extension will be performed!" % (args.g))
+        print("CAVE: --onlyfix is set. Only fixing the genome annotation file %s, no extension will be performed!" % (args.genome))
 
     console.print(Panel.fit("[bold blue]Preflight checks[/bold blue]", border_style="bold blue"), end = end)
 
@@ -579,10 +577,13 @@ if __name__ == "__main__":
             if verbose:
                 print('Selecting the longest transcript per gene ...',end = " ")
 
-            helper.select_longest_transcript(infile = genefile,outfile = new_genefile,infmt = infmt,outfmt = outfmt,verbose = verbose)
+            removed_genes_log = tempdir + '/' + 'removed_genes.txt' # file storing the names of the genes removed
+            helper.select_longest_transcript(infile = genefile,outfile = new_genefile,infmt = infmt,outfmt = infmt,verbose = verbose,removed_log = removed_genes_log)
             if verbose:
-                print('Done selecting the longest transcript per gene.')
+                print('Done selecting the longest transcript per gene.\nRemoved genes written to: %s' % removed_genes_log)
             genefile = new_genefile
+            helper.check_file_size(new_genefile,verbose = verbose)
+
 
         # Fix 5'overlaps 
         if do_5clip:
@@ -596,9 +597,15 @@ if __name__ == "__main__":
             if verbose > 2:
                 print("Fixed 5' overlaps in genes: %s -> %s" % (genefile,new_genefile))
             genefile = new_genefile
+            helper.check_file_size(genefile,verbose= verbose )
 
-        # Re-order genefile by the order of chromosomes 
+
+        
+        # Re-order genefile by the order of chromosomes - what for?
         helper.reorder_by_bam(genefile = genefile,bamfile = bamfile,tempdir = tempdir,verbose = verbose)
+        if verbose:
+            print('Done reordering by bam: %s' % genefile)
+        helper.check_file_size(genefile,verbose = verbose)
 
     # SJ DEV: what would be an appropriate place to put this function 
     ##################################################
@@ -615,7 +622,7 @@ if __name__ == "__main__":
     # 3. Extend the genes to the most downstream peaks (as a continuous regions?)
     # 4. The rest of the gene extensions should proceed as specified before.   
     ##################################################
-        do_sj = True
+        do_sj = False
         if do_sj:
             genic_bed = tempdir + '/' + 'sj.genic.bed'
             helper.get_genic_bed(genefile = genefile,outfile = genic_bed)
@@ -802,6 +809,8 @@ if __name__ == "__main__":
         else:
             orphan_bed = None
         report_extensions(file_path = tempdir+'/extensions.tsv',orphan_bed = orphan_bed,n_genes=helper.get_number_of_genes(genefile,fmt = infmt))
+        helper.plot_extensions(infile = tempdir+'/extensions.tsv',outfile = outputfile + '.extension_length.pdf',verbose = verbose)
+        helper.plot_peaks(genic = tempdir + '/genic_peaks.bed',noov = tempdir + '/allpeaks_noov.bed',outfile = outputfile + '.peak_coverage.pdf',peak_perc = coverage_percentile,verbose=verbose)
 
         if do_estimate:
             report_estimate()
