@@ -34,6 +34,7 @@ parser.add_argument('-tag', default = str('GeneExt'), help = 'Tag to be added to
 parser.add_argument('-v','--verbose', default = int(0), help = 'Verbosity level. [0],1,2,3')
 parser.add_argument('-j','--jobs', default = '1', help = 'Number of parallel cores. [1]')
 parser.add_argument('--output_mode', default = 'new_transcript', help = 'How to extend the gene (only for .gff/.gtf files) [new_transcript]\n\t* new_transcript - creates a new transcript feature with the last exon extended\n\t* new_exon - creates an extended last exon')
+parser.add_argument('-l','--longest',action='store_true', help = 'Whether to select the longest isoform per gene.')
 parser.add_argument('--clip_strand',default = 'sense',help = 'How to treat gene extension overlaps.\nsense - default,restrict overlaps into downstream genes on the same strand\nboth - restrict overlaps regardless of the strand.')
 parser.add_argument('--clip_5prime', action='store_true', help = 
 '''Use this to clip overlaps between genes. The downstream gene will be clipped.
@@ -163,6 +164,7 @@ def run_orphan():
             print('Orphan peaks: merging by distance.')
         orphan_merged_bed  = tempdir + '/' + 'orphan_merged.bed'
         chrnamesfile = tempdir + '/chr_names.txt'
+        helper.get_chr_names(bamfile, chrnamesfile,verbose = verbose)
         helper.merge_orphan_distance(orphan_bed = orphan_bed,chr_names = chrnamesfile,orphan_merged_bed = orphan_merged_bed,genic_bed = genefile_ext_bed,tempdir = tempdir,maxdist = orphan_maximum_distance,maxsize = orphan_maximum_size, verbose = verbose)
         if verbose:
             print('Orphan peaks: merged peaks - %s' % orphan_merged_bed)
@@ -311,6 +313,7 @@ def report_estimate():
 def run_genefile_fix(genefile,infmt):
     # Given an input file, check if it's missing "gene" and "transcript" features, if so, fix it and output an updated file name 
     features = helper.get_featuretypes(genefile)
+    helper.check_gene_exons(genefile,infmt = infmt,verbose = verbose)
     if not 'transcript' in features:
         console.print('Genome annotation warning: Could not find "transcript" features in %s! Trying to fix ...' % genefile,style = 'white')
         if 'mRNA' in features:
@@ -442,7 +445,7 @@ if __name__ == "__main__":
         logfilename = "GeneExt.log"
     sys.stdout = Logger(logfilename)
 
-    do_longest = True # whether to select the longest transcript per gene 
+    do_longest = args.longest # whether to select the longest transcript per gene # 08.03 Changed
     write_original_transcript = False # whether to write down the original transcript features
 #################################################################
 

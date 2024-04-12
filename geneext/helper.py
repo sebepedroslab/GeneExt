@@ -62,7 +62,10 @@ def split_strands(bamfile,outdir,verbose = False,threads = 1):
 
 def run_macs2(bamfile,peaks_prefix,outdir,verbose = False):
     """This function launches MACS2 to call peaks from a .bam file"""
-    cmd = ("macs2","callpeak","-t", bamfile ,"-f", "BAM", "--keep-dup", "20","-q", "0.01" , "--shift", "1" ,"--extsize", "20", "--broad", "--nomodel", "--min-length", "30", "-n",peaks_prefix,"--outdir", outdir)
+    #cmd = ("macs2","callpeak","-t", bamfile ,"-f", "BAM", "--keep-dup", "20","-q", "0.01" , "--shift", "1" ,"--extsize", "20", "--broad", "--nomodel", "--min-length", "30", "-n",peaks_prefix,"--outdir", outdir)
+    # 8.03.2024 - mimic peaks2utr command 
+    # the previous command leads to more peaks called 
+    cmd = ("macs2","callpeak","-t", bamfile ,"-f", "BAM", "--extsize", "200", "--broad", "--nomodel","-n",peaks_prefix,"--outdir", outdir)
     try:
         if verbose > 1:
             print('Running:\n\t%s' % ' '.join(cmd))
@@ -512,9 +515,20 @@ def extend_gff(db,extend_dictionary,output_file,extension_mode,tag,verbose = Fal
             elif infmt == 'gtf':
                 if not 'gene_id' in feature.attributes:
                     print(feature)
-                    exit("no gene_id attribute found for gene %s! ( see the feature line above)" % feature.id)    
+                    exit("no gene_id attribute found for gene %s! ( see the feature line above)" % feature.id)
+            
             n_exons = len([x for x in db.children(db[feature.id],featuretype='exon')])
             n_transcripts = len([x for x in db.children(db[feature.id],featuretype = 'transcript')])
+            
+            if feature.id == 'Tadh_wf_g10001':
+                print(feature.id)
+                print(n_exons)
+                print(n_transcripts)
+                print(feature.id in extend_dictionary.keys())
+                print(feature)
+                print([x for x in db.children(db[feature.id])])
+                quit() # boo
+
             if n_exons and feature.id in extend_dictionary.keys(): 
                 # dictoinary with written exons:
                 written_exons = []
@@ -538,14 +552,14 @@ def extend_gff(db,extend_dictionary,output_file,extension_mode,tag,verbose = Fal
                     last_exon = [x for x in db.children(db[feature.id],featuretype='exon') if x.end == max_end ][0]
                     last_exon.end = last_exon.end + extend_dictionary[feature.id]
                     if verbose > 2:
-                        print("Gene end chage: %s --> %s; %s" % (str(last_exon.end),str(last_exon.end+extend_dictionary[feature.id]),str(extend_dictionary[feature.id])))
+                        print("Gene end change: %s --> %s; %s" % (str(last_exon.end),str(last_exon.end+extend_dictionary[feature.id]),str(extend_dictionary[feature.id])))
                 elif db[feature.id].strand == '-':
                     feature.start = db[feature.id].start - extend_dictionary[feature.id]
                     max_end = min([f.start for f in db.children(db[feature.id],featuretype='exon')])
                     last_exon = [x for x in db.children(db[feature.id],featuretype='exon') if x.start == max_end ][0]
                     last_exon.start = last_exon.start - extend_dictionary[feature.id]
                     if verbose > 2:
-                        print("Gene end chage: %s --> %s; %s" % (str(last_exon.start),str(str(last_exon.start-extend_dictionary[feature.id])),str(extend_dictionary[feature.id])))
+                        print("Gene end change: %s --> %s; %s" % (str(last_exon.start),str(str(last_exon.start-extend_dictionary[feature.id])),str(extend_dictionary[feature.id])))
                 
                 if infmt == 'gff':
                     if not 'Parent' in last_exon.attributes:
@@ -777,8 +791,8 @@ def extend_gff(db,extend_dictionary,output_file,extension_mode,tag,verbose = Fal
             elif not feature.id in extend_dictionary.keys(): # write the gene and all children as they are in the file:
                 written_exons = []
                 written_features = [] # this is to check whether the feature has already been written 
-                #if verbose:
-                #    print("%s shoudn't be extended - omitting..." % feature.id)
+                if verbose:
+                    print("%s shoudn't be extended - omitting..." % feature.id)
                 if outfmt == infmt:  
                     if not str(feature) in written_features:
                         fout.write(str(feature) + '\n') # genes and transcripts are children of themselves
@@ -905,6 +919,7 @@ def extend_genes(genefile,peaksfile,outfile,maxdist,temp_dir,verbose,extension_m
 
     # Assign genes to the most downstream peaks below extension threshold:
     peaks2genes = {x.split('\t')[0]:[x.split('\t')[1],int(x.split('\t')[2])] for x in out.split('\n')[:-1]}
+
     genes2peaks = {gene:[(k,v[1]) for k,v in peaks2genes.items() if gene in v] for gene in set([v[0] for v in peaks2genes.values()])}
     if verbose > 1:
         print('======== Asssigning genes to peaks =============')
@@ -916,7 +931,7 @@ def extend_genes(genefile,peaksfile,outfile,maxdist,temp_dir,verbose,extension_m
         print('======== Gene extension statistics =============')
     # Select the most downstream peak per gene if not more than threshold 
     # TODO: simplify
-    extend = {k:[x for x in v if abs(x[1])<maxdist] for k,v in genes2peaks.items()} 
+    extend = {k:[x for x in v if abs(x[1])<=maxdist] for k,v in genes2peaks.items()} 
     extend = {k:v for k,v in extend.items() if v}
     extend = {k:[x for x in v if x[1] == min([x[1] for x in v ])][0] for k,v in extend.items()}
     extend_dictionary = {k:abs(v[1]) for k,v in extend.items()}
@@ -926,19 +941,23 @@ def extend_genes(genefile,peaksfile,outfile,maxdist,temp_dir,verbose,extension_m
     if verbose > 1:
         print("Checking extensions ...")
     upd_counter = 0
-    # for each gene extension, check if it's extension interferes with any of the genes on the same chromosome and strand.
+    # For each gene extension, check if it's extension interferes with any of the genes on the same chromosome and strand.
     # Drop extensions for the genes already overlapping other genes. 
     for gene in genes:
         if gene.id in extend_dictionary.keys():
             # Screen for gene overlaps - remove the genes from extension if overlapping other genes regardless of the strand 
-            if gene.strand == '+':
-                overlapped = [x for x in genes if x.start <= gene.end and x.end  > gene.end and x.chrom == gene.chrom]
-            elif gene.strand == '-':
-                overlapped = [x for x in genes if x.end >= gene.start and x.end < gene.end and x.chrom == gene.chrom]
-            if len(overlapped)>0:
-                if verbose > 2:
-                    print('%s overlaps the genes: %s' % (gene.id,','.join([x.id for x in overlapped])))
-                    del extend_dictionary[gene.id]      
+            # 08.03.24: CAVE: this prevents the genes with ANY overlaps from being extended - disable 
+            remove_with_overlaps = False
+            if remove_with_overlaps:
+                if gene.strand == '+':
+                    overlapped = [x for x in genes if x.start <= gene.end and x.end  > gene.end and x.chrom == gene.chrom]
+                elif gene.strand == '-':
+                    overlapped = [x for x in genes if x.end >= gene.start and x.end < gene.end and x.chrom == gene.chrom]
+                if len(overlapped)>0:
+                    if verbose > 2:
+                        print('%s overlaps the genes: %s; removing the extension' % (gene.id,','.join([x.id for x in overlapped])))
+                        # CAVE: instead of the deleting the overlaps, the overlap should be trimmed!
+                        del extend_dictionary[gene.id]      
             else:
                 # get the list of genes to consider for extension clipping:
                 if clip_mode == 'sense':
@@ -1324,6 +1343,50 @@ def get_featuretypes(infile = None):
     """To quickly check whether the file contains genes"""
     with open(infile) as file:
         return(set(line.split('\t')[2] for line in file if not '#' in line))
+
+
+
+def check_gene_exons(infile, infmt='gtf', output_file='genes_with_missing_exons.txt',verbose = 0):
+    """
+    Load the GTF/GFF file using gffutils and check if every gene has children exons.
+    If exons are missing for any gene, copy CDS features and use them as exons.
+    Write the list of genes with missing exons into a separate file.
+    
+    Parameters:
+        filename (str): Path to the GTF/GFF file.
+        infmt (str): Input format of the file ('gtf' or 'gff'). Defaults to 'gtf'.
+        output_file (str): Path to the output file to write the list of genes with missing exons. Defaults to 'genes_with_missing_exons.txt'.
+    """
+
+    def add_missing_exons(gene_id=None):
+        raise NotImplementedError(f"Gene {gene_id} is missing exons! You need to either remove this gene or to add the exons manually!\n")
+
+    # Create a gffutils database
+    db = gffutils_import_gxf(infile,merge_strategy="create_unique",verbose = 0) 
+    
+    if verbose > 0:
+        print('Checking gene exons...')
+    
+    # List to store genes with missing exons
+    genes_with_missing_exons = []
+    
+    # Iterate over genes
+    for gene in db.features_of_type('gene'):
+        # Check if the gene has children exons
+        exons = list(db.children(gene, featuretype='exon'))
+        if not exons:
+            genes_with_missing_exons.append(gene.id)
+    
+    # Write the list of genes with missing exons into a file
+    if genes_with_missing_exons:
+        print(f"Genes with missing exons: {output_file}")
+        with open(output_file, 'w') as fout:
+            fout.write('\n'.join(genes_with_missing_exons))
+    
+    # Apply fix for genes with missing exons
+    if genes_with_missing_exons:
+        for gene_id in genes_with_missing_exons:
+            add_missing_exons(gene_id)
 
 def add_gene_features(infile = None,outfile = None, infmt = None,verbose = False):
     # TODO: for multi-transcript files, the gene should be written only once!
