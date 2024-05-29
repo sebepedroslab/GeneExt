@@ -425,7 +425,7 @@ if __name__ == "__main__":
     # Orphan merging defaults:
     #orphan_maximum_distance =int(args.orphan_maxdist)
     orphan_maximum_distance= int(args.orphan_maxdist) if args.orphan_maxdist else None # DEV
-    maxdist_quant = 0.75
+    maxdist_quant = 0.95
     orphan_maximum_size = int(args.orphan_maxsize) if args.orphan_maxsize else None
     maxsize_quant = 0.5
     
@@ -708,6 +708,8 @@ if __name__ == "__main__":
                     #peaskfile_ordered = peaksfile.replace('.bed','.ordered.bed')
                     helper.get_chr_names(bamfile, chrnamesfile,verbose = verbose)
                     helper.order_bed(peaksfile,peaksfile,chrnamesfile,verbose = verbose)
+                    # fix peaks with 0-start coordinate 
+                    helper.fix_bed_start(peaksfile,peaksfile,verbose = verbose)
                     console.print('done',style = 'bold green')
             else:
                 print('Skipping macs2. Running gene extension with %s and %s.' % (peaksfile,genefile))

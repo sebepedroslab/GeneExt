@@ -62,10 +62,16 @@ def split_strands(bamfile,outdir,verbose = False,threads = 1):
 
 def run_macs2(bamfile,peaks_prefix,outdir,verbose = False):
     """This function launches MACS2 to call peaks from a .bam file"""
+
     #cmd = ("macs2","callpeak","-t", bamfile ,"-f", "BAM", "--keep-dup", "20","-q", "0.01" , "--shift", "1" ,"--extsize", "20", "--broad", "--nomodel", "--min-length", "30", "-n",peaks_prefix,"--outdir", outdir)
+    
+    # 06.05.2024 - use extsize 200
+
+    cmd = ("macs2","callpeak","-t", bamfile ,"-f", "BAM", "--keep-dup", "20","-q", "0.01" , "--shift", "1" ,"--extsize", "100", "--broad", "--nomodel", "--min-length", "30", "-n",peaks_prefix,"--outdir", outdir)
+
     # 8.03.2024 - mimic peaks2utr command 
     # the previous command leads to more peaks called 
-    cmd = ("macs2","callpeak","-t", bamfile ,"-f", "BAM", "--extsize", "200", "--broad", "--nomodel","-n",peaks_prefix,"--outdir", outdir)
+    #cmd = ("macs2","callpeak","-t", bamfile ,"-f", "BAM", "--extsize", "200", "--broad", "--nomodel","-n",peaks_prefix,"--outdir", outdir)
     try:
         if verbose > 1:
             print('Running:\n\t%s' % ' '.join(cmd))
@@ -791,8 +797,8 @@ def extend_gff(db,extend_dictionary,output_file,extension_mode,tag,verbose = Fal
             elif not feature.id in extend_dictionary.keys(): # write the gene and all children as they are in the file:
                 written_exons = []
                 written_features = [] # this is to check whether the feature has already been written 
-                if verbose:
-                    print("%s shoudn't be extended - omitting..." % feature.id)
+                #if verbose:
+                #    print("%s shoudn't be extended - omitting..." % feature.id)
                 if outfmt == infmt:  
                     if not str(feature) in written_features:
                         fout.write(str(feature) + '\n') # genes and transcripts are children of themselves
@@ -877,7 +883,7 @@ def extend_genes(genefile,peaksfile,outfile,maxdist,temp_dir,verbose,extension_m
     if len(genes) == 0:
         print('No genes loaded! Please, make sure your .gff/gtf. file contains "gene" features!')
         quit()
-    #peaks_d = {peak.id:peak for peak in peaks}
+    #peaks_d = {peak.id:peak for peakf in peaks}
     #genes_d = {gene.id:gene for gene in genes}
 
     ####################### Assign peaks to genes, determine how much to extend #################################
@@ -897,7 +903,7 @@ def extend_genes(genefile,peaksfile,outfile,maxdist,temp_dir,verbose,extension_m
     if verbose > 1:
         print("Written temporary files:\n\t%s\n\t%s" % (peaks_path,genes_path) )
 
-    # use bedtools to identify the closest genes for every peak 
+    # use bedtools to identify the closest upstream gene for every peak 
     os.system('bedtools sort -i %s/_peaks_tmp > %s/_peaks_tmp_sorted' % (temp_dir,temp_dir))
     os.system('bedtools sort -i %s/_genes_tmp > %s/_genes_tmp_sorted' % (temp_dir,temp_dir))
     #cmd = "bedtools closest -id -s -D a -a %s/_peaks_tmp_sorted -b %s/_genes_tmp_sorted  | cut -f 4,10,13  | awk '$3>=-%s'" % (temp_dir,temp_dir,maxdist)
@@ -1175,6 +1181,17 @@ def order_bed(infile,outfile,chrfile,verbose = 0):
         cmd = "bedtools sort -i %s -g %s > %s" % (infile,chrfile,outfile)
     else:
         cmd = "bedtools sort -i %s -g %s > %s.tmp; mv  %s.tmp %s" % (infile,chrfile,outfile,outfile,outfile)
+    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if verbose > 1 :
+        print('Running:\n\t%s' % cmd)
+
+
+def fix_bed_start(infile,outfile,verbose = 0):
+    if infile != outfile:
+        cmd = "awk 'BEGIN{OFS=@\\t@}{if($2==0){$2=1};print $0}' %s > %s" % (infile,outfile)
+    else:
+        cmd = "awk 'BEGIN{OFS=@\\t@}{if($2==0){$2=1};print $0}' %s > %s.tmp; mv %s.tmp %s"  % (infile,outfile,outfile,outfile)
+    cmd = cmd.replace('@','"')
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
