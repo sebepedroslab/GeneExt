@@ -182,7 +182,10 @@ def generate_report():
     cmd = 'Rscript %s/geneext/report.r %s %s %s %s %s %s %s %s' % (scriptloc,maxdist,str(int(coverage_percentile)/100),tempdir + '/_genes_peaks_closest',covfile,peaksfilt,tempdir+'/extensions.tsv',str(verbose),outputfile)
     if verbose > 1:
         print('Running:\n%s' % cmd)
-    os.system(cmd)
+    ret = os.system(cmd)
+    if ret != 0:
+        pipeline_error_print(f"Command failed with exit code {ret}: {cmd}")
+
 
 def is_file_empty(file_path):
     """Check if a file has zero lines."""
@@ -508,6 +511,10 @@ if __name__ == "__main__":
             pipeline_error_print("Please, specify either alignment [-b] or peaks file [-p]!")
 
         if bamfile is not None:
+            print(f"[DEBUG] Checking BAM path: {bamfile}")
+            print(f"[DEBUG] Current working directory: {os.getcwd()}")
+            print(f"[DEBUG] Absolute path: {os.path.abspath(bamfile)}")
+
             if os.path.isfile(bamfile):
                 if verbose > 0:
                     print('Alignment file ... OK')
@@ -574,9 +581,14 @@ if __name__ == "__main__":
             genefile = fixed_file_name
         else:
             genefile = run_genefile_fix(genefile,infmt)
+
+        print("DEBUG: Entering ifs")
         if do_longest:
+            print("DEBUG: Entering do_longest")
             #new_genefile = helper.append_before_ext(genefile,'fixed')
             new_genefile = tempdir + '/' + 'genome.fixed.' + infmt
+            print(new_genefile)
+
             if verbose:
                 print('Selecting the longest transcript per gene ...',end = " ")
 
@@ -590,6 +602,7 @@ if __name__ == "__main__":
 
         # Fix 5'overlaps 
         if do_5clip:
+            print("DEBUG: Entering 5clip")
             print("Clipping 5' overlaps in genes using %s cores..." % str(threads))
             # rename the file properl y
             #fpref = '.'.join(genefile.split('/')[-1].split('.')[:-1])
@@ -603,7 +616,7 @@ if __name__ == "__main__":
             helper.check_file_size(genefile,verbose= verbose )
 
 
-        
+        print("DEBUG: Exited ifs")
         # Re-order genefile by the order of chromosomes - what for?
         helper.reorder_by_bam(genefile = genefile,bamfile = bamfile,tempdir = tempdir,verbose = verbose)
         if verbose:
@@ -814,8 +827,8 @@ if __name__ == "__main__":
         else:
             orphan_bed = None
         report_extensions(file_path = tempdir+'/extensions.tsv',orphan_bed = orphan_bed,n_genes=helper.get_number_of_genes(genefile,fmt = infmt))
-        helper.plot_extensions(infile = tempdir+'/extensions.tsv',outfile = outputfile + '.extension_length.pdf',verbose = verbose)
-        helper.plot_peaks(genic = tempdir + '/genic_peaks.bed',noov = tempdir + '/allpeaks_noov.bed',outfile = outputfile + '.peak_coverage.pdf',peak_perc = coverage_percentile,verbose=verbose)
+        helper.plot_extensions(scriptloc,infile = tempdir+'/extensions.tsv',outfile = outputfile + '.extension_length.pdf',verbose = verbose)
+        helper.plot_peaks(scriptloc,genic = tempdir + '/genic_peaks.bed',noov = tempdir + '/allpeaks_noov.bed',outfile = outputfile + '.peak_coverage.pdf',peak_perc = coverage_percentile,verbose=verbose)
 
         if do_estimate:
             report_estimate()

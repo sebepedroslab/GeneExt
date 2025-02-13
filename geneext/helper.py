@@ -51,6 +51,8 @@ def split_strands(bamfile,outdir,verbose = False,threads = 1):
     if verbose > 1:
         print('Running:\n\t%s' % cmd) 
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     if verbose > 1:
         print(ps)
     cmd='samtools view  -@ %s -f 16 %s -b > %s' % (threads,bamfile,outdir + '/minus.bam')
@@ -59,6 +61,9 @@ def split_strands(bamfile,outdir,verbose = False,threads = 1):
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     if verbose > 1:
         print(ps)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
+
 
 def run_macs2(bamfile,peaks_prefix,outdir,verbose = False):
     """This function launches MACS2 to call peaks from a .bam file"""
@@ -76,6 +81,8 @@ def run_macs2(bamfile,peaks_prefix,outdir,verbose = False):
         if verbose > 1:
             print('Running:\n\t%s' % ' '.join(cmd))
         ps = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+        if ps.returncode != 0:
+            raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
         ps.check_returncode()
     except subprocess.CalledProcessError as e:
         print ( "\n########## macs2 FAILED ##############\nreturn code: ", e.returncode, "\nOutput: ", e.stderr.decode("utf-8") )
@@ -90,15 +97,23 @@ def collect_macs_beds(outdir,outfile,verbose = False):
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     if verbose > 1:
         print('Done collecting beds: %s' % (outfile))
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
+
 
 
 
 def index_bam(infile,verbose = False,threads = 1):
-
+    print("DEBUG: Starting index_bam")
     cmd = 'samtools index -@ %s %s' % (threads,infile)
     if verbose>1:
         print('Running:\n\t%s' % cmd)
-    os.system(cmd)
+    ret = os.system(cmd)
+    if ret != 0:
+        print(f"Command failed with exit code {ret}: {cmd}")
+    else:
+        print("DEBUG: ret exited as 0")
+
 
 # Coverage functions   
 def count_reads_in_region(region, aln):
@@ -178,6 +193,9 @@ def get_coverage_percentile(inputfile = None,percentile = None, verbose = False)
             print('Running:\n\t%s' % cmd)
         ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         out = ps.communicate()[0].decode("utf-8").rstrip()
+        if ps.returncode != 0:
+            raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
+
         return(out)
     else:
         return('0')
@@ -191,6 +209,8 @@ def filter_by_coverage(inputfile = None,outputfile = None,threshold = None,verbo
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     # Report how many peaks have been retained:
     if verbose > 1:
         ps = subprocess.Popen('wc -l %s' % outputfile,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
@@ -209,6 +229,8 @@ def outersect(inputbed_a,inputbed_b,outputbed,by_strand = True,verbose = False,f
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
         
 
 def intersect(inputbed_a,inputbed_b,outputbed,by_strand = True,verbose = False):
@@ -221,6 +243,8 @@ def intersect(inputbed_a,inputbed_b,outputbed,by_strand = True,verbose = False):
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
 # Parse helper
 def get_extension(filepath):
@@ -1122,6 +1146,8 @@ def merge_orphan_distance(orphan_bed = None,chr_names = None,orphan_merged_bed =
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     # sort just in case 
 
     #order_bed(orphan_merged_bed,orphan_merged_bed,chrfile,verbose = 0)
@@ -1167,14 +1193,20 @@ def get_genic_bed(genefile,outfile):
 
 def reorder_by_bam(genefile = None,bamfile = None,tempdir = None,verbose = 0):
     # A crutch so that bedtools doesn't fail due to a different file order 
+    print("DEBUG: Entering reorder_by_bam")
     chrsizefile = tempdir + '/chr_sizes.tsv'
+    print("chrsizefile:", chrsizefile)
     get_chr_sizes(bamfile = bamfile,outfile = chrsizefile)
+    print("DEBUG: Completed get_chr_sizes")
     cmd = "bedtools sort -i %s -g %s > %s; mv %s %s" % (genefile,chrsizefile,genefile + '.reord',genefile + '.reord',genefile)
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     if verbose > 0:
         print('Done reordering genefile.')
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
+    print("DEBUG: Completed reorder_by_bam")
 
 def order_bed(infile,outfile,chrfile,verbose = 0):
     if infile != outfile:
@@ -1184,6 +1216,8 @@ def order_bed(infile,outfile,chrfile,verbose = 0):
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
 
 def fix_bed_start(infile,outfile,verbose = 0):
@@ -1195,6 +1229,8 @@ def fix_bed_start(infile,outfile,verbose = 0):
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
 def get_intronic_bed(genefile = None,bamfile = None, tempdir = None, verbose = 0):
     
@@ -1205,6 +1241,8 @@ def get_intronic_bed(genefile = None,bamfile = None, tempdir = None, verbose = 0
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     
     # sort by the chromosomes in the bam
     cmd = "awk '$3==@gene@' %s | bedtools sort -i - | bedtools merge -i - | bedtools sort -i - -g %s/chr_sizes.tsv  > %s/reg.genic.bed" % (genefile,tempdir,tempdir)
@@ -1212,6 +1250,8 @@ def get_intronic_bed(genefile = None,bamfile = None, tempdir = None, verbose = 0
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
     #cmd = "awk '$3==@gene@ {print $1@\t@$5}' %s | sort -k1,1 -k2,2rn | awk '{if($1 in seen ==0){m[$1]=$2;seen[$1]=1}}END{for(k in m){print k@\t@m[k]}}' > %s/chr_sizes.tsv" % (genefile,tempdir)
     #cmd = cmd.replace('@','"')
@@ -1223,12 +1263,16 @@ def get_intronic_bed(genefile = None,bamfile = None, tempdir = None, verbose = 0
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
     cmd = "bedtools complement -i %s/reg.exonic.bed -g %s/chr_sizes.tsv | bedtools intersect -a - -b %s/reg.intergenic.bed -v > %s/reg.intronic.bed" % (tempdir,tempdir,tempdir,tempdir)
     cmd = cmd.replace('@','"')
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
-    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)    
+    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")    
 
 # get the number of files in bed:
 def get_tsv_nrow(bedfile):
@@ -1249,12 +1293,16 @@ def subsample_bam(inputbam = None,outputbam = None,nreads = None,verbose = True,
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     frac = ps.communicate()[0].decode("utf-8").rstrip()
     # subsample the bam using samtools view    
     cmd = "samtools view -@ %s -F 256 -h -b -s %s %s -o %s" % (str(threads),str(frac),inputbam,outputbam)
     if verbose> 1:
         print('Subsampling %s to %s reads => %s\n%s' % (inputbam,nreads,outputbam,cmd),flush = False)
     ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     if verbose > 1:
         print(ps.communicate())
     else:
@@ -1265,17 +1313,20 @@ def subsample_bam(inputbam = None,outputbam = None,nreads = None,verbose = True,
 # Estimate intergenic mapping for an new annotation  
 # create a chromosome size file - should be another function
 def get_chr_sizes(bamfile = None,outfile = None,verbose = False):
+    print("bamfile: " + bamfile)
     if not os.path.exists(bamfile + '.bai'):
+        print("DEBUG: Before index_bam")
         if verbose > 1:
             print("Indexing %s" % bamfile)
         index_bam(bamfile,verbose = verbose,threads=1)
-        quit()
-        #quit('Index the bam file!') 
+        quit('Index the bam file!') 
     cmd = "samtools idxstats %s | cut -f 1-2 | awk '$2!=0' > %s" % (bamfile,outfile)
     cmd = cmd.replace('__','"')
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
 def get_chr_names(bamfile = None,outfile = None,verbose = False):
     cmd = "samtools idxstats %s | cut -f 1 > %s" % (bamfile,outfile)
@@ -1283,6 +1334,8 @@ def get_chr_names(bamfile = None,outfile = None,verbose = False):
     if verbose > 1 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
 
 def get_genic_beds(genomeanno = None,genomechr = None,genicbed = None,intergenicbed = None,verbose = False,infmt = None):
@@ -1295,6 +1348,8 @@ def get_genic_beds(genomeanno = None,genomechr = None,genicbed = None,intergenic
         if verbose > 1 :
             print('Running:\n\t%s' % cmd)
         ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        if ps.returncode != 0:
+            raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     else:
         raise(NotImplementedError())
     ## Intergenic regions
@@ -1313,6 +1368,8 @@ def estimate_mapping(bamfile=None,genicbed=None,intergenicbed=None,threads=1,ver
         if verbose > 2 :
             print('Running:\n\t%s' % cmd)
         ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        if ps.returncode != 0:
+            raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
         Ngen = ps.communicate()[0].decode("utf-8").rstrip()
         
         # Intergenic reads 
@@ -1327,6 +1384,8 @@ def estimate_mapping(bamfile=None,genicbed=None,intergenicbed=None,threads=1,ver
         if verbose > 2 :
             print('Running:\n\t%s\n' % cmd)
         ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        if ps.returncode != 0:
+            raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
         Ntot = ps.communicate()[0].decode("utf-8").rstrip()
         
         # Mapped reads 
@@ -1334,6 +1393,8 @@ def estimate_mapping(bamfile=None,genicbed=None,intergenicbed=None,threads=1,ver
         if verbose > 2 :
             print('Running:\n\t%s\n' % cmd)
         ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        if ps.returncode != 0:
+            raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
         Nmap = ps.communicate()[0].decode("utf-8").rstrip()
 
         Ntot = int(Ntot)
@@ -1351,6 +1412,8 @@ def count_reads(bamfile=None,bed = None,flags = '',threads=1,verbose = False):
     if verbose > 2 :
         print('Running:\n\t%s' % cmd)
     ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
     Nread = ps.communicate()[0].decode("utf-8").rstrip()
     return(int(Nread))
 
@@ -1409,6 +1472,7 @@ def add_gene_features(infile = None,outfile = None, infmt = None,verbose = False
     # TODO: for multi-transcript files, the gene should be written only once!
     """Add gene features based on transcripts"""
     # record the maximal span per gene 
+    print("DEBUG: Entering add_gene_features!")
     if verbose > 1:
         print('Loading the database ...',flush = '')
     db = gffutils.create_db(infile, ':memory:',disable_infer_genes=True,disable_infer_transcripts=True, merge_strategy = 'create_unique',transform =gffutils_transform_func,keep_order = True)
@@ -1806,17 +1870,21 @@ def clip_5_overlaps(infile = None,outfile = None,threads = 1,verbose = False,tag
 
 
 # Plot gene extensions 
-def plot_extensions(infile,outfile,verbose = 0):
-    cmd='Rscript geneext/plot_extensions.R %s %s' % (infile,outfile)
+def plot_extensions(scriptloc,infile,outfile,verbose = 0):
+    cmd='Rscript %s/geneext/plot_extensions.R %s %s' % (scriptloc,infile,outfile)
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
-    subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
-def plot_peaks(genic,noov,outfile,peak_perc,verbose = 0):
-    cmd='Rscript geneext/peak_density.R %s %s %s %s ' % (genic,noov,outfile,peak_perc)
+def plot_peaks(scriptloc,genic,noov,outfile,peak_perc,verbose = 0):
+    cmd='Rscript %s/geneext/peak_density.R %s %s %s %s ' % (scriptloc,genic,noov,outfile,peak_perc)
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
-    subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    if ps.returncode != 0:
+        raise RuntimeError(f"Command failed: {cmd} with code {ps.returncode}")
 
 # Check if the file is present and has a content:
 
@@ -1835,6 +1903,7 @@ def check_file_size(filename,verbose = 0):
         FileSizeError: If the file size is 0.
         FileNotFoundError: If the file does not exist.
     """
+    print("DEBUG: Entering check_file_size")
     # Check if the file exists
     if not os.path.exists(filename):
         raise FileNotFoundError(f"File '{filename}' does not exist.")
