@@ -11,7 +11,24 @@ import pandas as pd
 
 # visual
 
-def print_logo(console):
+from rich.console import Console
+from rich.progress import Progress
+from rich.panel import Panel
+from rich.text import Text
+from rich.markup import escape
+
+# Visual settings
+console = Console()
+
+
+def pipeline_error_print(x=None,console = console):
+    console.print(x, style="bold red")
+    #print("\n"+x + '\n')
+    #os.system('cat %s/geneext/err.txt' % scriptloc)
+    quit()
+
+
+def print_logo(console = console):
     # Tool logo
     #with open('./geneext/ascii.txt', 'r') as file:
     #   ascii_art = file.read()
@@ -26,7 +43,7 @@ def print_logo(console):
           ______    ___    ______    
     -----[______]==[___]==[______]"""
     text2 = "===>"
-    text3 = "----\n\n    Gene model adjustment for improved single-cell RNA-seq data counting\n\n"
+    text3 = "----\n\n    Gene model adjustment for improved single-cell RNA-seq data quantification\n\n"
     console.print(text1, style="bold blue",end = '')
     console.print(text2, style="bold yellow",end = '')
     console.print(text3, style="bold blue")
@@ -139,7 +156,7 @@ def get_coverage(inputbed_a, input_bam, outputfile, verbose=0, mean=False, threa
     # split into chunks for threads
     chunks = [x for x in split(bed, threads)]
     if verbose:
-        print("mean chunk size: %s" % np.mean(np.array([len(x) for x in chunks])))
+        print("mean chunk size: %s" % round(np.mean(np.array([len(x) for x in chunks])),1))
     with open(outputfile, "w") as fout:
         if verbose > 1:
             print(f"Computing coverage for {str(len(bed))} peaks with {threads} threads...")
@@ -183,7 +200,7 @@ def get_coverage_percentile(inputfile = None,percentile = None, verbose = False)
         return('0')
 
 
-def filter_by_coverage(inputfile = None,outputfile = None,threshold = None,verbose = False):
+def filter_by_coverage(inputfile = None,outputfile = None,threshold = None,verbose = False,do_message = True):
     """
     Filter bed file by the last column
     """
@@ -191,13 +208,14 @@ def filter_by_coverage(inputfile = None,outputfile = None,threshold = None,verbo
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-    # Report how many peaks have been retained:
-    if verbose > 1:
+# Report how many peaks have been retained:
+    if do_message:
         ps = subprocess.Popen('wc -l %s' % outputfile,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         n = ps.communicate()[0].decode("utf-8").rstrip().split(' ')[0]
         ps = subprocess.Popen('wc -l %s' % inputfile,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         N = ps.communicate()[0].decode("utf-8").rstrip().split(' ')[0]
-        print('Retained %s/%s (%s %%)' % (str(n),str(N),str(round(int(n)/int(N)*100,2))))
+        return '\nRetained %s/%s (%s %%) intergenic peaks.' % (str(n),str(N),str(round(int(n)/int(N)*100,2)))
+
 
 def outersect(inputbed_a,inputbed_b,outputbed,by_strand = True,verbose = False,f = 0.0001):
     """This function returns non-overlapping peaks"""
@@ -217,7 +235,7 @@ def intersect(inputbed_a,inputbed_b,outputbed,by_strand = True,verbose = False):
         strand = '-s'
     else:
         strand = ''
-    cmd = "bedtools intersect -wa -a %s -b %s %s > %s" % (inputbed_a,inputbed_b,strand,outputbed)
+    cmd = "bedtools intersect -u -a %s -b %s %s > %s" % (inputbed_a,inputbed_b,strand,outputbed)
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
@@ -290,6 +308,7 @@ def parse_gff(infile,featuretype = None):
 
 
 def parse_gtf(infile,featuretype = None):
+    
     def gtf_get_ID(x):
         """x should be a string from the 9th field of a .gtf file. """
         o = [y.strip() for y in x.split(';') if len(y.strip())]
@@ -304,6 +323,9 @@ def parse_gtf(infile,featuretype = None):
     with open(infile) as file:
             lines = [line.rstrip().split('\t') for line in file if not '#' in line]
             if not featuretype:
+#                for x in lines:
+#                    print(x)
+#                    Region(chrom = x[0],start = int(x[3]),end = int(x[4]),id = gtf_get_ID(str(x[8])),strand = str(x[6]))
                 regs = [Region(chrom = x[0],start = int(x[3]),end = int(x[4]),id = gtf_get_ID(str(x[8])),strand = str(x[6])) for x in lines]
             else:
                 regs = [Region(chrom = x[0],start = int(x[3]),end = int(x[4]),id = gtf_get_ID(str(x[8])),strand = str(x[6])) for x in lines if x[2]==featuretype]
@@ -525,15 +547,7 @@ def extend_gff(db,extend_dictionary,output_file,extension_mode,tag,verbose = Fal
             
             n_exons = len([x for x in db.children(db[feature.id],featuretype='exon')])
             n_transcripts = len([x for x in db.children(db[feature.id],featuretype = 'transcript')])
-            
-            if feature.id == 'Tadh_wf_g10001':
-                print(feature.id)
-                print(n_exons)
-                print(n_transcripts)
-                print(feature.id in extend_dictionary.keys())
-                print(feature)
-                print([x for x in db.children(db[feature.id])])
-                quit() # boo
+
 
             if n_exons and feature.id in extend_dictionary.keys(): 
                 # dictoinary with written exons:
@@ -908,7 +922,7 @@ def extend_genes(genefile,peaksfile,outfile,maxdist,temp_dir,verbose,extension_m
     os.system('bedtools sort -i %s/_genes_tmp > %s/_genes_tmp_sorted' % (temp_dir,temp_dir))
     #cmd = "bedtools closest -id -s -D a -a %s/_peaks_tmp_sorted -b %s/_genes_tmp_sorted  | cut -f 4,10,13  | awk '$3>=-%s'" % (temp_dir,temp_dir,maxdist)
     # awk 'BEGIN{OFS=@\\t@}{if($NF==0){if($6==@+@){$NF=-($3-$9)}else{$NF=-($8-$2)}};print $0}'
-    cmd = "bedtools closest -id -s -D a -a %s/_peaks_tmp_sorted -b %s/_genes_tmp_sorted | awk '$NF!=-1' | awk '($6 == @+@ && $8<=$2)||($6==@-@ && $9 >= $3)' | awk 'BEGIN{OFS=@\\t@}{if($6==@+@){$NF=-($3-$9)}else{$NF=-($8-$2)};print $0}' | cut -f 4,10,13 | awk '$3>=-%s'" % (temp_dir,temp_dir,str(maxdist))
+    cmd = "bedtools closest -nonamecheck -id -s -D a -a %s/_peaks_tmp_sorted -b %s/_genes_tmp_sorted | awk '$NF!=-1' | awk '($6 == @+@ && $8<=$2)||($6==@-@ && $9 >= $3)' | awk 'BEGIN{OFS=@\\t@}{if($6==@+@){$NF=-($3-$9)}else{$NF=-($8-$2)};print $0}' | cut -f 4,10,13 | awk '$3>=-%s'" % (temp_dir,temp_dir,str(maxdist))
     cmd = cmd.replace('@','"')
     if verbose > 1:
         print('Running:\n\t\t%s > [output]' % cmd)
@@ -1165,16 +1179,47 @@ def get_genic_bed(genefile,outfile):
         for i,gene in enumerate(db.features_of_type("gene")):
             ofile.write("\t".join([gene.chrom,str(gene.start),str(gene.end),gene.id,"0",gene.strand])+'\n')
 
-def reorder_by_bam(genefile = None,bamfile = None,tempdir = None,verbose = 0):
-    # A crutch so that bedtools doesn't fail due to a different file order 
-    chrsizefile = tempdir + '/chr_sizes.tsv'
-    get_chr_sizes(bamfile = bamfile,outfile = chrsizefile)
-    cmd = "bedtools sort -i %s -g %s > %s; mv %s %s" % (genefile,chrsizefile,genefile + '.reord',genefile + '.reord',genefile)
-    if verbose > 1:
-        print('Running:\n\t%s' % cmd)
-    ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-    if verbose > 0:
-        print('Done reordering genefile.')
+def reorder_by_bam(genefile = None,bamfile = None,tempdir = None,verbose = 0,console = None):
+	chrsizefile = tempdir + '/chr_sizes.tsv'
+	# write chromosome file
+	get_chr_sizes(bamfile = bamfile,outfile = chrsizefile)
+
+	cmd = f"cut -f 1 {genefile} | sort | uniq"
+	chr_genome = subprocess.check_output(f"cut -f 1 {genefile} | sort | uniq", shell=True, text=True).splitlines()
+	chr_bam = subprocess.check_output(f"cut -f 1 {chrsizefile} | sort | uniq", shell=True, text=True).splitlines()
+	chr_genome = set(chr_genome)
+	chr_bam = set(chr_bam)
+	if verbose > 0:
+		print(f'{len(chr_genome)} contings in genome')
+		print(f'{len(chr_bam)} contings in bam')
+	missing = chr_genome - chr_bam
+	if(len(missing)>0):
+		tmpfile = os.path.join(tempdir,'genome.allcontigs.gtf')
+		console.print(f"WARNING: {len(missing)} genome contigs are missing in the bam file (no mapping reads):\n{','.join([str(x) for x in missing][:10])}",style = 'red')
+		console.print(f'They will be removed!\nThe original genome annotation is copied here: {tmpfile}',style = 'red')
+		# filter the genome file
+		cmd = f'cp {genefile} {tmpfile}'
+		if verbose > 1:
+			print(cmd)
+		subprocess.run(cmd,shell=True)
+		check_file_size(tmpfile)
+		cmd = f"awk 'FNR==NR{{d[$1]=$1;next}} $1 in d' {chrsizefile} {genefile} > {genefile}.tmp"
+		if verbose > 1:
+			print(cmd)
+		subprocess.run(cmd, shell=True, text=True)
+		check_file_size(genefile + '.tmp')
+		subprocess.run(f'mv {genefile}.tmp {genefile}',shell = True)
+	# filter 
+	cmd = "bedtools sort -i %s -g %s > %s; mv %s %s" % (genefile,chrsizefile,genefile + '.reord',genefile + '.reord',genefile)
+	#cmd = "bedtools sort -i %s -g %s > %s" % (genefile,chrsizefile,genefile + '.reord')
+	if verbose > 1:
+		console.print('Running:\n\t%s' % cmd)
+	ps = subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+	check_file_size(genefile)
+	if verbose > 0:
+		console.print('Done reordering genefile.')
+
+
 
 def order_bed(infile,outfile,chrfile,verbose = 0):
     if infile != outfile:
@@ -1807,13 +1852,18 @@ def clip_5_overlaps(infile = None,outfile = None,threads = 1,verbose = False,tag
 
 # Plot gene extensions 
 def plot_extensions(infile,outfile,verbose = 0):
-    cmd='Rscript geneext/plot_extensions.R %s %s' % (infile,outfile)
+    script_path = os.path.abspath(__file__)
+    # Get the directory of the script
+    script_dir = os.path.dirname(script_path)
+    cmd='Rscript %s/plot_extensions.R %s %s' % (script_dir,infile,outfile)
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
 def plot_peaks(genic,noov,outfile,peak_perc,verbose = 0):
-    cmd='Rscript geneext/peak_density.R %s %s %s %s ' % (genic,noov,outfile,peak_perc)
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.dirname(script_path)
+    cmd='Rscript %s/peak_density.R %s %s %s %s ' % (script_dir,genic,noov,outfile,peak_perc)
     if verbose > 1:
         print('Running:\n\t%s' % cmd)
     subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)

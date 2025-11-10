@@ -9,7 +9,7 @@ Tool dependencies can be installed with `conda` or `mamba`:
 
 ```bash
 # create environment
-conda env create -n geneext -f environment.yaml
+conda env create -n geneext -f environment_full.yaml
 
 # activate environment
 conda activate geneext
@@ -31,3 +31,13 @@ Please, first test whether the tool works properly on the test data!
 For details on how to obtain alignment file, please refer to the [manual](Manual.md).   
 If problems persist, don't hesitate to contact the authors.
 
+
+
+## Citation
+
+If you use this tool, please cite:
+
+> Zolotarov, G., Grau-Bové, X., & Sebé-Pedrós, A.  
+> **GeneExt: a gene model extension tool for enhanced single-cell RNA-seq analysis**  
+> *bioRxiv* 2023.12.05.570120  
+> https://doi.org/10.1101/2023.12.05.570120

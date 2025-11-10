@@ -1,0 +1,22 @@
+# Gene extension defaults:
+gene_maxdist_quant: 0.5 # quantile of genomic gene length to use as --m 
+
+# Orphan clustering defaults:
+orphan_maxsize_quant: 0.5 # maximum size of orphan cluster as a quantile of the genomic gene length
+orphan_maxdist_quant: 0.95 # maximum distance between orphans as a quantile of the genomic gene length
+
+# Peak filtering controls
+mean_coverage: True # whether to use length-normalized coverage for peak filtering
+peak_overlap_fmin: 1 # minimum fraction of peak overlap with a gene to be removed from extension. Decides between genic and non-genic peaks (0-1)
+
+# Misc defaults
+extension_mode: new_transcript # how to add the exteded exons 
+write_original_transcript: False # whether to write down the original transcript features
+do_plots: False # whether to plot the coverage and peak data
+default_tmp: tmp # default temporary directory
+# Remove: 
+do_estimate: False
+do_estimate_only: False
+do_fix_only: False
+do_report: False
+do_mapping: False

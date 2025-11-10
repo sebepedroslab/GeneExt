@@ -2,10 +2,9 @@
 
 import argparse
 from argparse import RawTextHelpFormatter
+from geneext.config import read_yaml_config
 from geneext import helper
-import os
-from os import path
-import sys
+from geneext.helper import pipeline_error_print
 
 from rich.console import Console
 from rich.progress import Progress
@@ -13,6 +12,10 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.markup import escape
 
+import os
+from os import path
+
+import sys
 import pandas as pd
 
 parser = argparse.ArgumentParser(description=
@@ -63,35 +66,17 @@ parser.add_argument('-rerun','--rerun', action='store_true', help = 'If set, Gen
 
 
 
-
-
-
-
 ########### Pipeline Functions ################
 ###############################################
-
-# set a logger for logging:
-class Logger(object):
-    def __init__(self,logfilename):
-        self.terminal = sys.stdout
-        self.log = open(logfilename, "a")
    
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)  
-
-    def flush(self):
-        # this flush method is needed for python 3 compatibility.
-        # this handles the flush command by doing nothing.
-        # you might want to specify some extra behavior here.
-        pass    
 
 # Visual settings
-def pipeline_error_print(x=None):
-    console.print(x, style="bold red")
-    #print("\n"+x + '\n')
-    #os.system('cat %s/geneext/err.txt' % scriptloc)
-    quit()
+#def pipeline_error_print(x=None):
+#    console.print(x, style="bold red")
+#    #print("\n"+x + '\n')
+#    #os.system('cat %s/geneext/err.txt' % scriptloc)
+#    quit()
+
 def print_task(x):
     console.print('%s ...' % x,style = 'bold yellow', end = end)
 
@@ -139,7 +124,6 @@ def run_peakcalling():
     helper.run_macs2(tempdir+'/' + 'plus.bam','plus',tempdir,verbose = verbose)
     helper.run_macs2(tempdir+'/' + 'minus.bam','minus',tempdir,verbose = verbose)
     helper.collect_macs_beds(outdir = tempdir,outfile = rawpeaks,verbose = verbose)
-
 
 def get_orphan(genefile = None,genefile_ext_bed = None,peaks_bed = None,orphan_bed = None,infmt = None, outfmt = None,verbose = False,merge = False):
         """Store peaks not falling within new genic regions as orphan peaks """
@@ -310,38 +294,27 @@ def report_estimate():
 
 
     # depends on whether it was called only multple files or ont 
-def run_genefile_fix(genefile,infmt):
+
+def PIPELINE_run_genefile_fix(genefile,infmt,tempdir,verbose,console):
+    # Returns the name of the fixed genome annotation file 
+
     # Given an input file, check if it's missing "gene" and "transcript" features, if so, fix it and output an updated file name 
     features = helper.get_featuretypes(genefile)
     helper.check_gene_exons(genefile,infmt = infmt,verbose = verbose)
     if not 'transcript' in features:
         console.print('Genome annotation warning: Could not find "transcript" features in %s! Trying to fix ...' % genefile,style = 'white')
         if 'mRNA' in features:
-            
+            console.print('Found "mRNA" features in %s - renaming as transcripts ... ' % genefile,style = 'white')
             #new_genefile = tempdir + '/' + helper.append_before_ext(os.path.basename(genefile),'fixed')
             new_genefile = tempdir + '/' + 'genome.fixed.' + infmt
-            if verbose > 0:
-                print('Found "mRNA" features - renaming as transcripts ...')
             helper.mRNA2transcript(infile = genefile,outfile = new_genefile, verbose = verbose)
             genefile = new_genefile
             if verbose > 0:
                 print("Added transcript features. New file name: %s" % genefile)
         else:
-            pipeline_error_print("Missing 'transcript' or 'mRNA' features in the genome annotation file %s!" % genefile)
-            quit()
-            #fpref = '.'.join(genefile.split('/')[-1].split('.')[:-1])
-            #fext = genefile.split('/')[-1].split('.')[-1]
-            #genefilewmrna = tempdir + '/' + fpref + '.fixed.' + fext
-            #genefilewmrna = helper.append_before_ext(genefile,'fixed')
-            new_genefile = tempdir + '/' + helper.append_before_ext(os.path.basename(genefile),'fixed')
-            
-            #genefilewmrna = tempdir + '/' + genefile.split('/')[-1].replace('.' + infmt,'_addtranscripts.' + infmt)
-            helper.add_transcript_features(infile = genefile, outfile = new_genefile,verbose = verbose)
-            genefile = new_genefile
-            if verbose > 0:
-                print("New file name: %s" % genefile)
+            pipeline_error_print("Missing 'transcript' or 'mRNA' features in the genome annotation file %s! Fix genome annotation file (e.g. with gffread)" % genefile)
+
     if not 'gene' in features:
-        #print('Could not find "gene" features in %s! Trying to fix ...' % genefile)
         console.print('Genome annotation warning: Could not find "gene" features in %s! Trying to fix ...' % genefile,style = 'white')
 
         #new_genefile = tempdir + '/' + helper.append_before_ext(os.path.basename(genefile),'fixed')
@@ -355,27 +328,28 @@ def run_genefile_fix(genefile,infmt):
         if verbose > 0:
             print("Added gene feature names. New file name: %s" % genefile)
     return(genefile)
-    
-
 
 ########### Main #####################
 ######################################
 
-########### Parse Arguments ################
-############################################
-
-
 if __name__ == "__main__":
 
-    console = Console()
-    helper.print_logo(console)
+    ########### Parse Arguments ################
+    ############################################
 
+
+    # Read the configuration file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    config = read_yaml_config('%s/geneext/config.yml' % script_dir)
+    helper.print_logo()
+    console = Console()
     args = parser.parse_args()
     
     outputfile = args.output
     if not outputfile:
         pipeline_error_print('Please, provide the output file name (-o)!')
 
+    
     bamfile = args.bam
     tempdir = args.t
     
@@ -391,53 +365,54 @@ if __name__ == "__main__":
     
     
     maxdist = args.maxdist
-    #extension_mode = args.e # the option has been removed for clarity 
-    extension_mode = 'new_transcript'
-    #extension_mode = 'new_exon'
 
     threads = int(args.jobs)
     tag = args.tag
     clip_mode = args.clip_strand
 
     # peak coverage percentile:
-    #mean_coverage = args.mean_coverage # the option has been removed for clarity. By default, the peaks are now filtered using normalized coverage
-    mean_coverage = True 
     coverage_percentile = args.peak_perc
 
     # pipeline execution:
-    do_mapping = False
     do_macs2 = args.bam is not None  
     do_subsample = args.subsamplebam is not None
     #do_estimate = args.estimate # the option has been removed for the sake of clarity 
-    do_estimate = False # DEV
-    do_estimate_only = False
+
     do_clean = not args.keep_intermediate_files
     
-    #do_report = args.report and do_macs2
-    do_report = False # DEV
-
-    #do_fix_only = args.onlyfix
-    do_fix_only = False # DEV
-
     do_orphan = args.orphan
     do_orphan_merge =  do_orphan and not args.nocluster
 
-    # Orphan merging defaults:
-    #orphan_maximum_distance =int(args.orphan_maxdist)
+    ##### Orphan merging defaults:
+    # if not set explicitly, will use default values 
     orphan_maximum_distance= int(args.orphan_maxdist) if args.orphan_maxdist else None # DEV
-    maxdist_quant = 0.95
+    
     orphan_maximum_size = int(args.orphan_maxsize) if args.orphan_maxsize else None
-    maxsize_quant = 0.5
+    
     
     # Clipping 5'-overlaps 
     do_5clip = args.clip_5prime
-    #do_5clip = True
 
     # Force 
     do_force = args.force
     # Rerun 
     do_rerun = args.rerun
 
+
+    class Logger(object):
+        def __init__(self,logfilename):
+            self.terminal = sys.stdout
+            self.log = open(logfilename, "a")
+    
+        def write(self, message):
+            self.terminal.write(message)
+            self.log.write(message)  
+
+        def flush(self):
+            # this flush method is needed for python 3 compatibility.
+            # this handles the flush command by doing nothing.
+            # you might want to specify some extra behavior here.
+            pass 
     # Logging 
     if outputfile:
         logfilename = outputfile + ".GeneExt.log"
@@ -445,8 +420,8 @@ if __name__ == "__main__":
         logfilename = "GeneExt.log"
     sys.stdout = Logger(logfilename)
 
-    do_longest = args.longest # whether to select the longest transcript per gene # 08.03 Changed
-    write_original_transcript = False # whether to write down the original transcript features
+    do_longest = args.longest # whether to select the longest transcript per gene 
+    
 #################################################################
 
     scriptloc = os.path.dirname(os.path.realpath(__file__))
@@ -457,7 +432,7 @@ if __name__ == "__main__":
 
 
     # If fix_only set - report only doing genome annotation fixes:
-    if do_fix_only:
+    if config.do_fix_only:
         print("CAVE: --onlyfix is set. Only fixing the genome annotation file %s, no extension will be performed!" % (args.genome))
 
     console.print(Panel.fit("[bold blue]Preflight checks[/bold blue]", border_style="bold blue"), end = end)
@@ -466,7 +441,7 @@ if __name__ == "__main__":
     # check if temporary directory exits;
     if tempdir is None:
         #tempdir = helper.get_prefixed_path(outputfile,prefix = 'tmp_')
-        tempdir = 'tmp' # use the common temp directory name 
+        tempdir = config.default_tmp # use the common temp directory name 
         if verbose > 0:
             print("Temporary directory isn't set, setting to %s/" % tempdir)
     else:
@@ -487,6 +462,7 @@ if __name__ == "__main__":
             print("Temporary directory created: %s/" % tempdir)
 #################################################################
     # if found tempdir, check which files are there 
+    
     # subsampling:
     subsampled_bam  = tempdir + '/subsampled.bam' 
     # peak calling 
@@ -502,7 +478,7 @@ if __name__ == "__main__":
     found_covfile = path.isfile(covfile) and path.isfile(peaksfilt) and path.isfile(peaksfilt)
 
 ##################################################################
-    if not do_fix_only:
+    if not config.do_fix_only:
         # parse input and output formats - run the pipeline accordingly
         if peaksfile is None and bamfile is None:
             pipeline_error_print("Please, specify either alignment [-b] or peaks file [-p]!")
@@ -514,7 +490,7 @@ if __name__ == "__main__":
             else:
                 pipeline_error_print('Specified alignment file does not exist!')
 
-    if not do_estimate:
+    if not config.do_estimate:
         # check output file:
         if outputfile is None and not do_estimate:
             pipeline_error_print('Please, specify the output file [-o]!')
@@ -573,9 +549,10 @@ if __name__ == "__main__":
             print('Found fixed genome file: %s' % fixed_file_name)
             genefile = fixed_file_name
         else:
-            genefile = run_genefile_fix(genefile,infmt)
+            genefile = PIPELINE_run_genefile_fix(genefile,infmt,tempdir = tempdir,verbose = verbose,console = console)
+
         if do_longest:
-            #new_genefile = helper.append_before_ext(genefile,'fixed')
+            
             new_genefile = tempdir + '/' + 'genome.fixed.' + infmt
             if verbose:
                 print('Selecting the longest transcript per gene ...',end = " ")
@@ -591,10 +568,6 @@ if __name__ == "__main__":
         # Fix 5'overlaps 
         if do_5clip:
             print("Clipping 5' overlaps in genes using %s cores..." % str(threads))
-            # rename the file properl y
-            #fpref = '.'.join(genefile.split('/')[-1].split('.')[:-1])
-            #fext = genefile.split('/')[-1].split('.')[-1]
-            #genefile5clip = tempdir + '/' + fpref + '_5clip.' + fext
             new_genefile = tempdir + '/' + 'genome.fixed.' + infmt
             helper.clip_5_overlaps(infile = genefile,outfile = new_genefile,threads = threads,verbose = verbose)
             if verbose > 2:
@@ -602,12 +575,8 @@ if __name__ == "__main__":
             genefile = new_genefile
             helper.check_file_size(genefile,verbose= verbose )
 
-
-        
         # Re-order genefile by the order of chromosomes - what for?
-        helper.reorder_by_bam(genefile = genefile,bamfile = bamfile,tempdir = tempdir,verbose = verbose)
-        if verbose:
-            print('Done reordering by bam: %s' % genefile)
+        helper.reorder_by_bam(genefile = genefile,bamfile = bamfile,tempdir = tempdir,verbose = verbose,console = console)
         helper.check_file_size(genefile,verbose = verbose)
 
     # SJ DEV: what would be an appropriate place to put this function 
@@ -633,9 +602,9 @@ if __name__ == "__main__":
     #quit() #sj
     console.print(Panel.fit("[bold blue]Execution[/bold blue]", border_style="bold blue"))
     ##################################################
-    if not do_fix_only:
+    if not config.do_fix_only:
         # parse input file format: 
-        if not do_estimate_only:    
+        if not config.do_estimate_only:    
             #-1. Index input bam 
             if bamfile:
                 if not os.path.isfile(bamfile + '.bai'):
@@ -645,25 +614,25 @@ if __name__ == "__main__":
 
             # if -m is not set, get a median gene size:
             if not maxdist:
-                maxdist = helper.get_quantile_gene_length(inputfile = genefile,fmt = infmt,q = 0.5)
+                maxdist = helper.get_quantile_gene_length(inputfile = genefile,fmt = infmt,q = config.gene_maxdist_quant)
                 if verbose:
                     print('Maximum allowed extension length is not set, getting median size of the gene - %s bp.' % str(round(maxdist)))
             # if maximum size for orphan peak is not set, set it to the median gene size:
             if do_orphan_merge:
                 if not orphan_maximum_size:
-                    orphan_maximum_size = round(helper.get_quantile_gene_length(inputfile=genefile,fmt = infmt,q = maxsize_quant))
+                    orphan_maximum_size = round(helper.get_quantile_gene_length(inputfile=genefile,fmt = infmt,q = config.orphan_maxsize_quant))
                     if verbose:
-                        print('Maximum size of orphan clusters is set to %s-th quantile of the gene lengths: %s' % (round(maxsize_quant*100),round(orphan_maximum_size)))
+                        print('Maximum size of orphan clusters is set to %s-th quantile of the gene lengths: %s' % (round(config.orphan_maxsize_quant*100),round(orphan_maximum_size)))
                 if not orphan_maximum_distance:
                     helper.get_intronic_bed(genefile = genefile,bamfile = bamfile, tempdir = tempdir, verbose = verbose)
                     bedfile = tempdir + '/reg.intronic.bed'
-                    orphan_maximum_distance = round(helper.get_bed_length_q(bedfile,maxdist_quant))
+                    orphan_maximum_distance = round(helper.get_bed_length_q(bedfile,config.orphan_maxdist_quant))
                     if verbose:
-                        print('Maximum distance between peaks is set to %s-th quantile of intron lengths: %s' % (round(maxdist_quant*100),round(orphan_maximum_distance)))
+                        print('Maximum distance between peaks is set to %s-th quantile of intron lengths: %s' % (round(config.orphan_maxdist_quant*100),round(orphan_maximum_distance)))
 
 
         # 0. MAPPING - not implemented     
-            if do_mapping:
+            if config.do_mapping:
                 print_task('Running mapping')
                 raise(NotImplementedError())
         # 0.1 BAM SUBSAMPLING  
@@ -734,7 +703,7 @@ if __name__ == "__main__":
                         helper.index_bam(bamfile,verbose = verbose,threads=threads)
                     if verbose > 0:
                         print('Computing coverage ...')
-                    helper.get_coverage(inputbed_a=peaksfile,input_bam = bamfile,outputfile = covfile,verbose = verbose,mean = mean_coverage,threads = threads)
+                    helper.get_coverage(inputbed_a=peaksfile,input_bam = bamfile,outputfile = covfile,verbose = verbose,mean = config.mean_coverage,threads = threads)
                     # get the peaks overlapping genes:
                     if verbose > 0:
                         print('Getting genic peaks ...')
@@ -743,7 +712,7 @@ if __name__ == "__main__":
                     nrow = helper.get_tsv_nrow(genicpeaksfile)
                     if nrow == 0:
                         pipeline_error_print("No lines in %s" % genicpeaksfile)
-                    if not coverage_percentile:
+                    if coverage_percentile == 0:
                         if verbose > 0:
                             print('Coverage percentile is not set - retaining all the peaks...')
                         count_threshold = 0
@@ -752,15 +721,18 @@ if __name__ == "__main__":
                         count_threshold = helper.get_coverage_percentile(inputfile = genicpeaksfile,percentile = coverage_percentile,verbose = verbose)
                         # hell, you also have to replace the column 
                         if verbose > 0:
-                            print('%s-th %s coverage percentile for %s is %s %s. Filtering out the peaks below this value...' % (coverage_percentile,'mean' if mean_coverage else '' ,genicpeaksfile,str(count_threshold),'reads/base' if mean_coverage else 'reads'))
+                            print('%s-th %s coverage percentile for %s is %s %s. Filtering out the peaks below this value...' % (coverage_percentile,'mean' if config.mean_coverage else '' ,genicpeaksfile,str(count_threshold),'reads/base' if config.mean_coverage else 'reads'))
+                    
                     # get peaks not overlapping the genes and filter them by coverage
                     peaksfilt = tempdir + '/' + 'allpeaks_noov.bed'
                     peaksfiltcov = peaksfilt.replace('.bed','_fcov.bed')
                     if verbose > 0:
                         print('Removing peaks overlapping genes ... => %s' % peaksfilt)
                     # f=1 will filter out only the peaks fully contained within genes!!!
-                    helper.outersect(inputbed_a = covfile,inputbed_b = genefile,outputbed=peaksfilt,by_strand = True, verbose = verbose,f = 1)
-                    helper.filter_by_coverage(inputfile = peaksfilt,outputfile = peaksfiltcov,threshold = count_threshold,verbose = True)
+                    # This means, that non-fully contained peaks will be used for gene extension. 
+                    helper.outersect(inputbed_a = covfile,inputbed_b = genefile,outputbed=peaksfilt,by_strand = True, verbose = verbose,f = config.peak_overlap_fmin)
+                    peakfilt_message = helper.filter_by_coverage(inputfile = peaksfilt,outputfile = peaksfiltcov,threshold = count_threshold,verbose = verbose, do_message = True)
+                    console.print(peakfilt_message,style = 'bold yellow')
                     peaksfilt = peaksfiltcov
                     console.print('done',style = 'bold green')
             else:
@@ -774,7 +746,7 @@ if __name__ == "__main__":
         # 3. Extend genes 
             #console.print('======== Extending genes =======================',style = 'bold yellow',end = end)
             print_task('Extending genes')
-            helper.extend_genes(genefile = genefile,peaksfile = peaksfilt,outfile = outputfile,maxdist = int(maxdist),temp_dir = tempdir,verbose = verbose,extension_mode = extension_mode,infmt = infmt,outfmt = outfmt,tag = tag,clip_mode = clip_mode,write_original_transcript = write_original_transcript)
+            helper.extend_genes(genefile = genefile,peaksfile = peaksfilt,outfile = outputfile,maxdist = int(maxdist),temp_dir = tempdir,verbose = verbose,extension_mode = config.extension_mode,infmt = infmt,outfmt = outfmt,tag = tag,clip_mode = clip_mode,write_original_transcript = config.write_original_transcript)
             console.print('done',style = 'bold green')
 
         # 4. Add orphan peaks
@@ -784,14 +756,14 @@ if __name__ == "__main__":
                 #run_orphan(infmt = infmt,outfmt = outfmt,verbose = verbose,merge = do_orphan_merge)
                 run_orphan()
                 console.print('done',style = 'bold green')
-            if do_report:
+            if config.do_report:
                 #print('======== Creating PDF report =======================')
                 print_task('Creating PDF report')
                 raise(NotImplementedError())
                 generate_report()
 
         # 5. Estimate intergenic mapping
-            if do_estimate:
+            if config.do_estimate:
                 console.print('======== Estimating intergenic mapping =========',style = 'bold yellow')
                 if bamfile:
                     if do_orphan:
@@ -814,10 +786,12 @@ if __name__ == "__main__":
         else:
             orphan_bed = None
         report_extensions(file_path = tempdir+'/extensions.tsv',orphan_bed = orphan_bed,n_genes=helper.get_number_of_genes(genefile,fmt = infmt))
-        helper.plot_extensions(infile = tempdir+'/extensions.tsv',outfile = outputfile + '.extension_length.pdf',verbose = verbose)
-        helper.plot_peaks(genic = tempdir + '/genic_peaks.bed',noov = tempdir + '/allpeaks_noov.bed',outfile = outputfile + '.peak_coverage.pdf',peak_perc = coverage_percentile,verbose=verbose)
+        
+        if config.do_plots:
+            helper.plot_extensions(infile = tempdir+'/extensions.tsv',outfile = outputfile + '.extension_length.pdf',verbose = verbose)
+            helper.plot_peaks(genic = tempdir + '/genic_peaks.bed',noov = tempdir + '/allpeaks_noov.bed',outfile = outputfile + '.peak_coverage.pdf',peak_perc = coverage_percentile,verbose=verbose)
 
-        if do_estimate:
+        if config.do_estimate:
             report_estimate()
         if do_clean:
             # clean big files
