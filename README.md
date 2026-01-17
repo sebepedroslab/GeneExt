@@ -22,10 +22,11 @@ Once dependencies are installed, try running `GeneExt` with sample data:
 python geneext.py -g test_data/annotation.gtf -b test_data/alignments.bam -o result.gtf --peak_perc 0
 ```
 Note1: `--peak_perc 0` is set to 0 to disable peak filtering as the test dataset is too small.  
-Note2: `GeneExt` has been mostly tested on `gtf`-formatted files. Please, use `gtf`, if possible.     
+Note2: `GeneExt` has been mostly tested on `gtf`-formatted files. Please, use `gtf`, if possible. 
 
 
 Please, first test whether the tool works properly on the test data! 
+Most errors with `GeneExt` come from improperly formatted files. If you encounter errors, please, try standardizing your annotation file with [`AGAT`](https://agat.readthedocs.io/en/latest/tools/agat_convert_sp_gxf2gxf.html). 
 
 
 For details on how to obtain alignment file, please refer to the [manual](Manual.md).   
