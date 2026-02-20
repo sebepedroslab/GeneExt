@@ -1,19 +1,14 @@
+NOWV01000100.1	Genbank	gene	9015	10163	.	+	.	gene_id "TrH2_TrispH2_008489"
 NOWV01000100.1	Genbank	transcript	9015	10163	.	+	.	transcript_id "TrH2_TrispH2_008489-RA"; gene_id "TrH2_TrispH2_008489";
 NOWV01000100.1	Genbank	exon	9015	10163	.	+	.	transcript_id "TrH2_TrispH2_008489-RA"; gene_id "TrH2_TrispH2_008489";
-NOWV01000100.1	Genbank	CDS	9015	10163	.	+	0	transcript_id "TrH2_TrispH2_008489-RA"; gene_id "TrH2_TrispH2_008489";
+NOWV01000100.1	Genbank	gene	20354	20809	.	-	.	gene_id "TrH2_TrispH2_008490"
 NOWV01000100.1	Genbank	transcript	20354	20809	.	-	.	transcript_id "TrH2_TrispH2_008490-RA"; gene_id "TrH2_TrispH2_008490";
 NOWV01000100.1	Genbank	exon	20354	20809	.	-	.	transcript_id "TrH2_TrispH2_008490-RA"; gene_id "TrH2_TrispH2_008490";
-NOWV01000100.1	Genbank	CDS	20354	20809	.	-	0	transcript_id "TrH2_TrispH2_008490-RA"; gene_id "TrH2_TrispH2_008490";
+NOWV01000100.1	Genbank	gene	26944	27903	.	-	.	gene_id "TrH2_TrispH2_008491"
 NOWV01000100.1	Genbank	transcript	26944	27903	.	-	.	transcript_id "TrH2_TrispH2_008491-RA"; gene_id "TrH2_TrispH2_008491";
 NOWV01000100.1	Genbank	exon	26944	27903	.	-	.	transcript_id "TrH2_TrispH2_008491-RA"; gene_id "TrH2_TrispH2_008491";
-NOWV01000100.1	Genbank	CDS	26944	27903	.	-	0	transcript_id "TrH2_TrispH2_008491-RA"; gene_id "TrH2_TrispH2_008491";
+NOWV01000100.1	Genbank	gene	37340	43977	.	+	.	gene_id "TrH2_TrispH2_008492"
 NOWV01000100.1	Genbank	transcript	37340	43977	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	exon	37340	37594	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	exon	38470	38780	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	exon	39189	39248	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	exon	39336	39416	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	exon	39548	39642	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	exon	39845	39955	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
 NOWV01000100.1	Genbank	exon	40048	40075	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
 NOWV01000100.1	Genbank	exon	40386	40427	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
 NOWV01000100.1	Genbank	exon	40593	40656	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
@@ -23,20 +18,13 @@ NOWV01000100.1	Genbank	exon	41110	41240	.	+	.	transcript_id "TrH2_TrispH2_008492
 NOWV01000100.1	Genbank	exon	41376	41495	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
 NOWV01000100.1	Genbank	exon	41599	41709	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
 NOWV01000100.1	Genbank	exon	41813	43977	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	38484	38780	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	39189	39248	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	39336	39416	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	39548	39642	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	39845	39955	.	+	1	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	40048	40075	.	+	1	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	40386	40427	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	40593	40656	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	40750	40804	.	+	2	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	40946	40998	.	+	1	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	41110	41240	.	+	2	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	41376	41495	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	41599	41709	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
-NOWV01000100.1	Genbank	CDS	41813	41929	.	+	0	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
+NOWV01000100.1	Genbank	exon	37340	37594	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
+NOWV01000100.1	Genbank	exon	38470	38780	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
+NOWV01000100.1	Genbank	exon	39189	39248	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
+NOWV01000100.1	Genbank	exon	39336	39416	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
+NOWV01000100.1	Genbank	exon	39548	39642	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
+NOWV01000100.1	Genbank	exon	39845	39955	.	+	.	transcript_id "TrH2_TrispH2_008492-RA"; gene_id "TrH2_TrispH2_008492";
+NOWV01000100.1	Genbank	gene	41832	46756	.	-	.	gene_id "TrH2_TrispH2_008493"
 NOWV01000100.1	Genbank	transcript	41832	46756	.	-	.	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
 NOWV01000100.1	Genbank	exon	41832	43491	.	-	.	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
 NOWV01000100.1	Genbank	exon	43616	43722	.	-	.	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
@@ -49,29 +37,19 @@ NOWV01000100.1	Genbank	exon	44986	45099	.	-	.	transcript_id "TrH2_TrispH2_008493
 NOWV01000100.1	Genbank	exon	45424	45602	.	-	.	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
 NOWV01000100.1	Genbank	exon	45940	46006	.	-	.	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
 NOWV01000100.1	Genbank	exon	46361	46756	.	-	.	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	43393	43491	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	43616	43722	.	-	2	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	43831	43977	.	-	2	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	44088	44181	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	44318	44458	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	44527	44616	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	44720	44899	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	44986	45099	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	45424	45602	.	-	2	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	45940	46006	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
-NOWV01000100.1	Genbank	CDS	46361	46375	.	-	0	transcript_id "TrH2_TrispH2_008493-RA"; gene_id "TrH2_TrispH2_008493";
+NOWV01000100.1	Genbank	gene	48640	49677	.	+	.	gene_id "TrH2_TrispH2_008494"
 NOWV01000100.1	Genbank	transcript	48640	49677	.	+	.	transcript_id "TrH2_TrispH2_008494-RA"; gene_id "TrH2_TrispH2_008494";
 NOWV01000100.1	Genbank	exon	48640	49677	.	+	.	transcript_id "TrH2_TrispH2_008494-RA"; gene_id "TrH2_TrispH2_008494";
-NOWV01000100.1	Genbank	CDS	48640	49677	.	+	0	transcript_id "TrH2_TrispH2_008494-RA"; gene_id "TrH2_TrispH2_008494";
+NOWV01000100.1	Genbank	gene	56130	57203	.	+	.	gene_id "TrH2_TrispH2_008495"
 NOWV01000100.1	Genbank	transcript	56130	57203	.	+	.	transcript_id "TrH2_TrispH2_008495-RA"; gene_id "TrH2_TrispH2_008495";
 NOWV01000100.1	Genbank	exon	56130	57203	.	+	.	transcript_id "TrH2_TrispH2_008495-RA"; gene_id "TrH2_TrispH2_008495";
-NOWV01000100.1	Genbank	CDS	56130	57203	.	+	0	transcript_id "TrH2_TrispH2_008495-RA"; gene_id "TrH2_TrispH2_008495";
+NOWV01000100.1	Genbank	gene	66384	67439	.	+	.	gene_id "TrH2_TrispH2_008496"
 NOWV01000100.1	Genbank	transcript	66384	67439	.	+	.	transcript_id "TrH2_TrispH2_008496-RA"; gene_id "TrH2_TrispH2_008496";
 NOWV01000100.1	Genbank	exon	66384	67439	.	+	.	transcript_id "TrH2_TrispH2_008496-RA"; gene_id "TrH2_TrispH2_008496";
-NOWV01000100.1	Genbank	CDS	66384	67439	.	+	0	transcript_id "TrH2_TrispH2_008496-RA"; gene_id "TrH2_TrispH2_008496";
+NOWV01000100.1	Genbank	gene	85567	86676	.	+	.	gene_id "TrH2_TrispH2_008497"
 NOWV01000100.1	Genbank	transcript	85567	86676	.	+	.	transcript_id "TrH2_TrispH2_008497-RA"; gene_id "TrH2_TrispH2_008497";
 NOWV01000100.1	Genbank	exon	85567	86676	.	+	.	transcript_id "TrH2_TrispH2_008497-RA"; gene_id "TrH2_TrispH2_008497";
-NOWV01000100.1	Genbank	CDS	85567	86676	.	+	0	transcript_id "TrH2_TrispH2_008497-RA"; gene_id "TrH2_TrispH2_008497";
+NOWV01000100.1	Genbank	gene	88631	90586	.	-	.	gene_id "TrH2_TrispH2_008498"
 NOWV01000100.1	Genbank	transcript	88631	90586	.	-	.	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
 NOWV01000100.1	Genbank	exon	88631	88856	.	-	.	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
 NOWV01000100.1	Genbank	exon	88968	89056	.	-	.	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
@@ -80,13 +58,7 @@ NOWV01000100.1	Genbank	exon	89767	89831	.	-	.	transcript_id "TrH2_TrispH2_008498
 NOWV01000100.1	Genbank	exon	89969	90088	.	-	.	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
 NOWV01000100.1	Genbank	exon	90185	90287	.	-	.	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
 NOWV01000100.1	Genbank	exon	90473	90586	.	-	.	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
-NOWV01000100.1	Genbank	CDS	88820	88856	.	-	1	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
-NOWV01000100.1	Genbank	CDS	88968	89056	.	-	0	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
-NOWV01000100.1	Genbank	CDS	89193	89294	.	-	0	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
-NOWV01000100.1	Genbank	CDS	89767	89831	.	-	2	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
-NOWV01000100.1	Genbank	CDS	89969	90088	.	-	2	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
-NOWV01000100.1	Genbank	CDS	90185	90287	.	-	0	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
-NOWV01000100.1	Genbank	CDS	90473	90574	.	-	0	transcript_id "TrH2_TrispH2_008498-RA"; gene_id "TrH2_TrispH2_008498";
+NOWV01000100.1	Genbank	gene	92802	102244	.	-	.	gene_id "TrH2_TrispH2_008499"
 NOWV01000100.1	Genbank	transcript	92802	102244	.	-	.	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
 NOWV01000100.1	Genbank	exon	92802	93526	.	-	.	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
 NOWV01000100.1	Genbank	exon	93611	93676	.	-	.	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
@@ -108,29 +80,10 @@ NOWV01000100.1	Genbank	exon	99614	99765	.	-	.	transcript_id "TrH2_TrispH2_008499
 NOWV01000100.1	Genbank	exon	99993	100118	.	-	.	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
 NOWV01000100.1	Genbank	exon	100806	101030	.	-	.	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
 NOWV01000100.1	Genbank	exon	101905	102244	.	-	.	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	93218	93526	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	93611	93676	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	93829	94023	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	94168	94344	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	94527	94667	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	94942	95124	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	95312	95484	.	-	2	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	95581	95731	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	95856	96200	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	96288	96458	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	96692	96868	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	97178	97291	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	97459	97615	.	-	1	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	97854	98044	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	98156	98501	.	-	1	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	99087	99529	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	99614	99765	.	-	2	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	99993	100118	.	-	2	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	100806	101030	.	-	2	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
-NOWV01000100.1	Genbank	CDS	101905	102229	.	-	0	transcript_id "TrH2_TrispH2_008499-RA"; gene_id "TrH2_TrispH2_008499";
+NOWV01000100.1	Genbank	gene	106553	107599	.	+	.	gene_id "TrH2_TrispH2_008500"
 NOWV01000100.1	Genbank	transcript	106553	107599	.	+	.	transcript_id "TrH2_TrispH2_008500-RA"; gene_id "TrH2_TrispH2_008500";
 NOWV01000100.1	Genbank	exon	106553	107599	.	+	.	transcript_id "TrH2_TrispH2_008500-RA"; gene_id "TrH2_TrispH2_008500";
-NOWV01000100.1	Genbank	CDS	106553	107599	.	+	0	transcript_id "TrH2_TrispH2_008500-RA"; gene_id "TrH2_TrispH2_008500";
+NOWV01000100.1	Genbank	gene	111744	116463	.	+	.	gene_id "TrH2_TrispH2_008501"
 NOWV01000100.1	Genbank	transcript	111744	116463	.	+	.	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
 NOWV01000100.1	Genbank	exon	111744	111864	.	+	.	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
 NOWV01000100.1	Genbank	exon	111988	112309	.	+	.	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
@@ -138,18 +91,12 @@ NOWV01000100.1	Genbank	exon	113261	113339	.	+	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	113584	114195	.	+	.	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
 NOWV01000100.1	Genbank	exon	114409	114543	.	+	.	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
 NOWV01000100.1	Genbank	exon	115192	116463	.	+	.	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
-NOWV01000100.1	Genbank	CDS	111744	111864	.	+	0	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
-NOWV01000100.1	Genbank	CDS	111988	112309	.	+	2	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
-NOWV01000100.1	Genbank	CDS	113261	113339	.	+	1	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
-NOWV01000100.1	Genbank	CDS	113584	114195	.	+	0	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
-NOWV01000100.1	Genbank	CDS	114409	114543	.	+	0	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
-NOWV01000100.1	Genbank	CDS	115192	115956	.	+	0	transcript_id "TrH2_TrispH2_008501-RA"; gene_id "TrH2_TrispH2_008501";
+NOWV01000100.1	Genbank	gene	115469	119751	.	-	.	gene_id "TrH2_TrispH2_008502"
 NOWV01000100.1	Genbank	transcript	115469	119751	.	-	.	transcript_id "TrH2_TrispH2_008502-RA"; gene_id "TrH2_TrispH2_008502";
 NOWV01000100.1	Genbank	exon	115469	116479	.	-	.	transcript_id "TrH2_TrispH2_008502-RA"; gene_id "TrH2_TrispH2_008502";
 NOWV01000100.1	Genbank	exon	117209	118254	.	-	.	transcript_id "TrH2_TrispH2_008502-RA"; gene_id "TrH2_TrispH2_008502";
 NOWV01000100.1	Genbank	exon	118426	119751	.	-	.	transcript_id "TrH2_TrispH2_008502-RA"; gene_id "TrH2_TrispH2_008502";
-NOWV01000100.1	Genbank	CDS	116247	116479	.	-	2	transcript_id "TrH2_TrispH2_008502-RA"; gene_id "TrH2_TrispH2_008502";
-NOWV01000100.1	Genbank	CDS	117209	117950	.	-	0	transcript_id "TrH2_TrispH2_008502-RA"; gene_id "TrH2_TrispH2_008502";
+NOWV01000100.1	Genbank	gene	119852	124281	.	+	.	gene_id "TrH2_TrispH2_008503"
 NOWV01000100.1	Genbank	transcript	119852	124281	.	+	.	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
 NOWV01000100.1	Genbank	exon	119852	119961	.	+	.	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
 NOWV01000100.1	Genbank	exon	120498	120620	.	+	.	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
@@ -165,44 +112,20 @@ NOWV01000100.1	Genbank	exon	122957	123156	.	+	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	123244	123334	.	+	.	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
 NOWV01000100.1	Genbank	exon	123446	123630	.	+	.	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
 NOWV01000100.1	Genbank	exon	123700	124281	.	+	.	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	120572	120620	.	+	0	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	120978	121049	.	+	2	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	121352	121476	.	+	2	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	121648	121751	.	+	0	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	121889	121955	.	+	1	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	122072	122176	.	+	0	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	122278	122439	.	+	0	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	122523	122574	.	+	0	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	122655	122827	.	+	2	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	122957	123156	.	+	0	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	123244	123334	.	+	1	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	123446	123630	.	+	0	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
-NOWV01000100.1	Genbank	CDS	123700	124141	.	+	1	transcript_id "TrH2_TrispH2_008503-RA"; gene_id "TrH2_TrispH2_008503";
+NOWV01000100.1	Genbank	gene	129335	130411	.	+	.	gene_id "TrH2_TrispH2_008504"
 NOWV01000100.1	Genbank	transcript	129335	130411	.	+	.	transcript_id "TrH2_TrispH2_008504-RA"; gene_id "TrH2_TrispH2_008504";
 NOWV01000100.1	Genbank	exon	129335	130411	.	+	.	transcript_id "TrH2_TrispH2_008504-RA"; gene_id "TrH2_TrispH2_008504";
-NOWV01000100.1	Genbank	CDS	129335	130411	.	+	0	transcript_id "TrH2_TrispH2_008504-RA"; gene_id "TrH2_TrispH2_008504";
+NOWV01000100.1	Genbank	gene	131811	135341	.	+	.	gene_id "TrH2_TrispH2_008505"
 NOWV01000100.1	Genbank	transcript	131811	135341	.	+	.	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
 NOWV01000100.1	Genbank	exon	131811	133354	.	+	.	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
 NOWV01000100.1	Genbank	exon	134084	134366	.	+	.	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
 NOWV01000100.1	Genbank	exon	134565	134731	.	+	.	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
 NOWV01000100.1	Genbank	exon	134875	135341	.	+	.	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
-NOWV01000100.1	Genbank	CDS	132895	133354	.	+	0	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
-NOWV01000100.1	Genbank	CDS	134084	134366	.	+	2	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
-NOWV01000100.1	Genbank	CDS	134565	134731	.	+	1	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
-NOWV01000100.1	Genbank	CDS	134875	135140	.	+	2	transcript_id "TrH2_TrispH2_008505-RA"; gene_id "TrH2_TrispH2_008505";
+NOWV01000100.1	Genbank	gene	136668	137633	.	-	.	gene_id "TrH2_TrispH2_008506"
 NOWV01000100.1	Genbank	transcript	136668	137633	.	-	.	transcript_id "TrH2_TrispH2_008506-RA"; gene_id "TrH2_TrispH2_008506";
 NOWV01000100.1	Genbank	exon	136668	137633	.	-	.	transcript_id "TrH2_TrispH2_008506-RA"; gene_id "TrH2_TrispH2_008506";
-NOWV01000100.1	Genbank	CDS	136668	137633	.	-	0	transcript_id "TrH2_TrispH2_008506-RA"; gene_id "TrH2_TrispH2_008506";
+NOWV01000100.1	Genbank	gene	139559	147644	.	+	.	gene_id "TrH2_TrispH2_008507"
 NOWV01000100.1	Genbank	transcript	139559	147644	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	139559	139711	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	140950	141036	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	141480	141544	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	141716	141789	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	141905	142020	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	142126	142190	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	142280	142317	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	142406	142461	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	exon	142569	142616	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
 NOWV01000100.1	Genbank	exon	142687	142759	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
 NOWV01000100.1	Genbank	exon	142884	142968	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
 NOWV01000100.1	Genbank	exon	143075	143127	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
@@ -225,41 +148,20 @@ NOWV01000100.1	Genbank	exon	146158	146236	.	+	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	146321	146469	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
 NOWV01000100.1	Genbank	exon	146572	146727	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
 NOWV01000100.1	Genbank	exon	146798	147644	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	139649	139711	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	140950	141036	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	141480	141544	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	141716	141789	.	+	1	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	141905	142020	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	142126	142190	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	142280	142317	.	+	1	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	142406	142461	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	142569	142616	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	142687	142759	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	142884	142968	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	143075	143127	.	+	1	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	143200	143276	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	143371	143446	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	143536	143600	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	143691	143779	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	143855	143939	.	+	1	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	144060	144129	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	144223	144268	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	144406	144515	.	+	1	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	144643	144692	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	144774	144884	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	144966	145084	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	145174	145285	.	+	1	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	145369	145438	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	145589	145707	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	145825	145884	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	146158	146236	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	146321	146469	.	+	2	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	146572	146727	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
-NOWV01000100.1	Genbank	CDS	146798	147064	.	+	0	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	139559	139711	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	140950	141036	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	141480	141544	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	141716	141789	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	141905	142020	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	142126	142190	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	142280	142317	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	142406	142461	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	exon	142569	142616	.	+	.	transcript_id "TrH2_TrispH2_008507-RA"; gene_id "TrH2_TrispH2_008507";
+NOWV01000100.1	Genbank	gene	152210	154323	.	+	.	gene_id "TrH2_TrispH2_008508"
 NOWV01000100.1	Genbank	transcript	152210	154323	.	+	.	transcript_id "TrH2_TrispH2_008508-RA"; gene_id "TrH2_TrispH2_008508";
 NOWV01000100.1	Genbank	exon	152210	152865	.	+	.	transcript_id "TrH2_TrispH2_008508-RA"; gene_id "TrH2_TrispH2_008508";
 NOWV01000100.1	Genbank	exon	153279	154323	.	+	.	transcript_id "TrH2_TrispH2_008508-RA"; gene_id "TrH2_TrispH2_008508";
-NOWV01000100.1	Genbank	CDS	153295	154323	.	+	0	transcript_id "TrH2_TrispH2_008508-RA"; gene_id "TrH2_TrispH2_008508";
+NOWV01000100.1	Genbank	gene	153131	158451	.	-	.	gene_id "TrH2_TrispH2_008509"
 NOWV01000100.1	Genbank	transcript	153131	158451	.	-	.	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
 NOWV01000100.1	Genbank	exon	153131	155576	.	-	.	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
 NOWV01000100.1	Genbank	exon	155722	155807	.	-	.	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
@@ -273,34 +175,21 @@ NOWV01000100.1	Genbank	exon	157048	157093	.	-	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	157439	157531	.	-	.	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
 NOWV01000100.1	Genbank	exon	157666	157792	.	-	.	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
 NOWV01000100.1	Genbank	exon	158079	158451	.	-	.	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	155511	155576	.	-	0	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	155722	155807	.	-	2	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	155876	156025	.	-	2	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	156112	156202	.	-	0	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	156315	156385	.	-	2	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	156469	156614	.	-	1	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	156672	156778	.	-	0	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	156863	156932	.	-	1	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	157048	157093	.	-	2	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	157439	157531	.	-	2	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	157666	157792	.	-	0	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
-NOWV01000100.1	Genbank	CDS	158079	158387	.	-	0	transcript_id "TrH2_TrispH2_008509-RA"; gene_id "TrH2_TrispH2_008509";
+NOWV01000100.1	Genbank	gene	160840	164253	.	+	.	gene_id "TrH2_TrispH2_008510"
 NOWV01000100.1	Genbank	transcript	160840	164253	.	+	.	transcript_id "TrH2_TrispH2_008510-RA"; gene_id "TrH2_TrispH2_008510";
 NOWV01000100.1	Genbank	exon	160840	164253	.	+	.	transcript_id "TrH2_TrispH2_008510-RA"; gene_id "TrH2_TrispH2_008510";
-NOWV01000100.1	Genbank	CDS	160840	164253	.	+	0	transcript_id "TrH2_TrispH2_008510-RA"; gene_id "TrH2_TrispH2_008510";
+NOWV01000100.1	Genbank	gene	172763	173599	.	+	.	gene_id "TrH2_TrispH2_008511"
 NOWV01000100.1	Genbank	transcript	172763	173599	.	+	.	transcript_id "TrH2_TrispH2_008511-RA"; gene_id "TrH2_TrispH2_008511";
 NOWV01000100.1	Genbank	exon	172763	173599	.	+	.	transcript_id "TrH2_TrispH2_008511-RA"; gene_id "TrH2_TrispH2_008511";
-NOWV01000100.1	Genbank	CDS	172763	173599	.	+	0	transcript_id "TrH2_TrispH2_008511-RA"; gene_id "TrH2_TrispH2_008511";
+NOWV01000100.1	Genbank	gene	177661	178698	.	+	.	gene_id "TrH2_TrispH2_008512"
 NOWV01000100.1	Genbank	transcript	177661	178698	.	+	.	transcript_id "TrH2_TrispH2_008512-RA"; gene_id "TrH2_TrispH2_008512";
 NOWV01000100.1	Genbank	exon	177661	178698	.	+	.	transcript_id "TrH2_TrispH2_008512-RA"; gene_id "TrH2_TrispH2_008512";
-NOWV01000100.1	Genbank	CDS	177661	178698	.	+	0	transcript_id "TrH2_TrispH2_008512-RA"; gene_id "TrH2_TrispH2_008512";
+NOWV01000100.1	Genbank	gene	194875	197012	.	+	.	gene_id "TrH2_TrispH2_008513"
 NOWV01000100.1	Genbank	transcript	194875	197012	.	+	.	transcript_id "TrH2_TrispH2_008513-RA"; gene_id "TrH2_TrispH2_008513";
 NOWV01000100.1	Genbank	exon	194875	195724	.	+	.	transcript_id "TrH2_TrispH2_008513-RA"; gene_id "TrH2_TrispH2_008513";
 NOWV01000100.1	Genbank	exon	196215	196630	.	+	.	transcript_id "TrH2_TrispH2_008513-RA"; gene_id "TrH2_TrispH2_008513";
 NOWV01000100.1	Genbank	exon	196726	197012	.	+	.	transcript_id "TrH2_TrispH2_008513-RA"; gene_id "TrH2_TrispH2_008513";
-NOWV01000100.1	Genbank	CDS	194875	195724	.	+	0	transcript_id "TrH2_TrispH2_008513-RA"; gene_id "TrH2_TrispH2_008513";
-NOWV01000100.1	Genbank	CDS	196215	196630	.	+	2	transcript_id "TrH2_TrispH2_008513-RA"; gene_id "TrH2_TrispH2_008513";
-NOWV01000100.1	Genbank	CDS	196726	196839	.	+	0	transcript_id "TrH2_TrispH2_008513-RA"; gene_id "TrH2_TrispH2_008513";
+NOWV01000100.1	Genbank	gene	197523	204466	.	-	.	gene_id "TrH2_TrispH2_008514"
 NOWV01000100.1	Genbank	transcript	197523	204466	.	-	.	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
 NOWV01000100.1	Genbank	exon	197523	198279	.	-	.	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
 NOWV01000100.1	Genbank	exon	198366	198459	.	-	.	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
@@ -313,19 +202,10 @@ NOWV01000100.1	Genbank	exon	200573	200635	.	-	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	201340	201417	.	-	.	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
 NOWV01000100.1	Genbank	exon	201931	201972	.	-	.	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
 NOWV01000100.1	Genbank	exon	203800	204466	.	-	.	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	198373	198459	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	198582	198770	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	199044	199113	.	-	1	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	199691	199773	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	199861	199985	.	-	2	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	200282	200348	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	200573	200635	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	201340	201417	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	201931	201972	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
-NOWV01000100.1	Genbank	CDS	203800	203826	.	-	0	transcript_id "TrH2_TrispH2_008514-RA"; gene_id "TrH2_TrispH2_008514";
+NOWV01000100.1	Genbank	gene	213107	214204	.	-	.	gene_id "TrH2_TrispH2_008515"
 NOWV01000100.1	Genbank	transcript	213107	214204	.	-	.	transcript_id "TrH2_TrispH2_008515-RA"; gene_id "TrH2_TrispH2_008515";
 NOWV01000100.1	Genbank	exon	213107	214204	.	-	.	transcript_id "TrH2_TrispH2_008515-RA"; gene_id "TrH2_TrispH2_008515";
-NOWV01000100.1	Genbank	CDS	213107	214204	.	-	0	transcript_id "TrH2_TrispH2_008515-RA"; gene_id "TrH2_TrispH2_008515";
+NOWV01000100.1	Genbank	gene	214988	224737	.	-	.	gene_id "TrH2_TrispH2_008516"
 NOWV01000100.1	Genbank	transcript	214988	224737	.	-	.	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
 NOWV01000100.1	Genbank	exon	214988	215788	.	-	.	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
 NOWV01000100.1	Genbank	exon	215908	215976	.	-	.	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
@@ -364,43 +244,7 @@ NOWV01000100.1	Genbank	exon	223157	223300	.	-	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	223385	223543	.	-	.	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
 NOWV01000100.1	Genbank	exon	223955	224057	.	-	.	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
 NOWV01000100.1	Genbank	exon	224556	224737	.	-	.	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	215633	215788	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	215908	215976	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	216064	216106	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	216201	216247	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	216393	216522	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	216654	216736	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	216830	216949	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	217039	217161	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	217320	217429	.	-	2	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	217560	217755	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	217834	217945	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	218022	218169	.	-	2	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	218259	218370	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	218452	218574	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	218669	218812	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	218891	219058	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	219175	219279	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	219437	219591	.	-	2	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	219719	219819	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	219892	220020	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	220104	220267	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	220339	220521	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	220617	220838	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	220936	221156	.	-	2	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	221241	221341	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	221446	221546	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	221715	221795	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	221877	221982	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	222075	222148	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	222251	222416	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	222501	222580	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	222665	222815	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	222911	223068	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	223157	223300	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	223385	223543	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	223955	224057	.	-	1	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
-NOWV01000100.1	Genbank	CDS	224556	224737	.	-	0	transcript_id "TrH2_TrispH2_008516-RA"; gene_id "TrH2_TrispH2_008516";
+NOWV01000100.1	Genbank	gene	227466	230885	.	+	.	gene_id "TrH2_TrispH2_008517"
 NOWV01000100.1	Genbank	transcript	227466	230885	.	+	.	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
 NOWV01000100.1	Genbank	exon	227466	227958	.	+	.	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
 NOWV01000100.1	Genbank	exon	228117	228182	.	+	.	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
@@ -414,29 +258,14 @@ NOWV01000100.1	Genbank	exon	229635	229718	.	+	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	229812	229859	.	+	.	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
 NOWV01000100.1	Genbank	exon	229933	230034	.	+	.	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
 NOWV01000100.1	Genbank	exon	230208	230885	.	+	.	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	227749	227958	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	228117	228182	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	228297	228396	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	228521	228587	.	+	2	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	228698	228826	.	+	1	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	228911	228992	.	+	1	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	229120	229281	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	229381	229455	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	229635	229718	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	229812	229859	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	229933	230034	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
-NOWV01000100.1	Genbank	CDS	230208	230378	.	+	0	transcript_id "TrH2_TrispH2_008517-RA"; gene_id "TrH2_TrispH2_008517";
+NOWV01000100.1	Genbank	gene	231567	234599	.	-	.	gene_id "TrH2_TrispH2_008518"
 NOWV01000100.1	Genbank	transcript	231567	234599	.	-	.	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
 NOWV01000100.1	Genbank	exon	231567	231646	.	-	.	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
 NOWV01000100.1	Genbank	exon	232372	232678	.	-	.	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
 NOWV01000100.1	Genbank	exon	232802	232865	.	-	.	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
 NOWV01000100.1	Genbank	exon	233143	233286	.	-	.	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
 NOWV01000100.1	Genbank	exon	234548	234599	.	-	.	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
-NOWV01000100.1	Genbank	CDS	231623	231646	.	-	0	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
-NOWV01000100.1	Genbank	CDS	232372	232678	.	-	1	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
-NOWV01000100.1	Genbank	CDS	232802	232865	.	-	2	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
-NOWV01000100.1	Genbank	CDS	233143	233286	.	-	2	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
-NOWV01000100.1	Genbank	CDS	234548	234599	.	-	0	transcript_id "TrH2_TrispH2_008518-RA"; gene_id "TrH2_TrispH2_008518";
+NOWV01000100.1	Genbank	gene	234796	240634	.	+	.	gene_id "TrH2_TrispH2_008519"
 NOWV01000100.1	Genbank	transcript	234796	240634	.	+	.	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
 NOWV01000100.1	Genbank	exon	234796	235007	.	+	.	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
 NOWV01000100.1	Genbank	exon	235400	235510	.	+	.	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
@@ -448,16 +277,7 @@ NOWV01000100.1	Genbank	exon	238752	238907	.	+	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	239042	239191	.	+	.	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
 NOWV01000100.1	Genbank	exon	239365	239495	.	+	.	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
 NOWV01000100.1	Genbank	exon	239595	240634	.	+	.	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	234954	235007	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	235400	235510	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	237311	237492	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	237653	237716	.	+	1	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	238086	238208	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	238410	238640	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	238752	238907	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	239042	239191	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	239365	239495	.	+	0	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
-NOWV01000100.1	Genbank	CDS	239595	239649	.	+	1	transcript_id "TrH2_TrispH2_008519-RA"; gene_id "TrH2_TrispH2_008519";
+NOWV01000100.1	Genbank	gene	245818	253148	.	+	.	gene_id "TrH2_TrispH2_008520"
 NOWV01000100.1	Genbank	transcript	245818	253148	.	+	.	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
 NOWV01000100.1	Genbank	exon	245818	245862	.	+	.	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
 NOWV01000100.1	Genbank	exon	247456	247575	.	+	.	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
@@ -471,18 +291,7 @@ NOWV01000100.1	Genbank	exon	250538	250637	.	+	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	250835	250947	.	+	.	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
 NOWV01000100.1	Genbank	exon	251524	251661	.	+	.	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
 NOWV01000100.1	Genbank	exon	251764	253148	.	+	.	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	245818	245862	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	247456	247575	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	247783	247896	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	248061	248207	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	248547	248702	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	248808	248875	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	249130	249249	.	+	1	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	249548	249731	.	+	1	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	250538	250637	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	250835	250947	.	+	2	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	251524	251661	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
-NOWV01000100.1	Genbank	CDS	251764	251889	.	+	0	transcript_id "TrH2_TrispH2_008520-RA"; gene_id "TrH2_TrispH2_008520";
+NOWV01000100.1	Genbank	gene	251799	260736	.	-	.	gene_id "TrH2_TrispH2_008521"
 NOWV01000100.1	Genbank	transcript	251799	260736	.	-	.	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
 NOWV01000100.1	Genbank	exon	251799	253164	.	-	.	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
 NOWV01000100.1	Genbank	exon	253276	253380	.	-	.	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
@@ -501,23 +310,7 @@ NOWV01000100.1	Genbank	exon	258313	258369	.	-	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	259240	259396	.	-	.	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
 NOWV01000100.1	Genbank	exon	259670	259756	.	-	.	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
 NOWV01000100.1	Genbank	exon	260596	260736	.	-	.	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	252992	253164	.	-	2	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	253276	253380	.	-	2	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	253464	253526	.	-	2	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	253610	256121	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	256336	256476	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	256561	256680	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	256793	256870	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	256977	257040	.	-	1	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	257169	257290	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	257403	257504	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	257593	257670	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	257778	257843	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	257957	258168	.	-	2	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	258313	258369	.	-	2	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	259240	259396	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	259670	259756	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
-NOWV01000100.1	Genbank	CDS	260596	260736	.	-	0	transcript_id "TrH2_TrispH2_008521-RA"; gene_id "TrH2_TrispH2_008521";
+NOWV01000100.1	Genbank	gene	263179	266232	.	+	.	gene_id "TrH2_TrispH2_008522"
 NOWV01000100.1	Genbank	transcript	263179	266232	.	+	.	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
 NOWV01000100.1	Genbank	exon	263179	263539	.	+	.	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
 NOWV01000100.1	Genbank	exon	264248	264381	.	+	.	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
@@ -527,14 +320,7 @@ NOWV01000100.1	Genbank	exon	265001	265011	.	+	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	265153	265329	.	+	.	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
 NOWV01000100.1	Genbank	exon	265442	265502	.	+	.	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
 NOWV01000100.1	Genbank	exon	265600	266232	.	+	.	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	263409	263539	.	+	0	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	264248	264381	.	+	1	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	264534	264587	.	+	2	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	264787	264839	.	+	2	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	265001	265011	.	+	0	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	265153	265329	.	+	1	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	265442	265502	.	+	1	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
-NOWV01000100.1	Genbank	CDS	265600	265671	.	+	0	transcript_id "TrH2_TrispH2_008522-RA"; gene_id "TrH2_TrispH2_008522";
+NOWV01000100.1	Genbank	gene	266991	271402	.	-	.	gene_id "TrH2_TrispH2_008523"
 NOWV01000100.1	Genbank	transcript	266991	271402	.	-	.	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
 NOWV01000100.1	Genbank	exon	266991	267086	.	-	.	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
 NOWV01000100.1	Genbank	exon	267189	267308	.	-	.	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
@@ -551,18 +337,3 @@ NOWV01000100.1	Genbank	exon	269451	269507	.	-	.	transcript_id "TrH2_TrispH2_0085
 NOWV01000100.1	Genbank	exon	270237	270393	.	-	.	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
 NOWV01000100.1	Genbank	exon	270546	270632	.	-	.	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
 NOWV01000100.1	Genbank	exon	271265	271402	.	-	.	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	266991	267086	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	267189	267308	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	267591	267731	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	267835	267954	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	268027	268104	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	268185	268248	.	-	1	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	268345	268466	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	268562	268663	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	268746	268823	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	268924	268989	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	269123	269319	.	-	2	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	269451	269507	.	-	2	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	270237	270393	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	270546	270632	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";
-NOWV01000100.1	Genbank	CDS	271265	271402	.	-	0	transcript_id "TrH2_TrispH2_008523-RA"; gene_id "TrH2_TrispH2_008523";

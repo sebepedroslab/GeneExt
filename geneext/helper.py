@@ -1058,7 +1058,6 @@ def extend_genes(genefile,peaksfile,outfile,maxdist,temp_dir,verbose,extension_m
 ############################# Orphan peaks ############################################
 # Orphan peaks 
 def add_orphan_peaks(infile = None,peaksbed = None,fmt = None,tmp_outfile = None,tag = None,verbose = False):
-	tag = 'GE_orphan'
 	"""This function takes orphan peaks and appends them to the input file"""
 	if not fmt:
 		raise(ValueError('Please, specify file format!'))
