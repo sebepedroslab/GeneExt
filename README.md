@@ -38,10 +38,10 @@ For instance:
 
 
 
-The resulting gtf file will contain:
-	- input features - untouched 
-	- input transcripts extended - the 2nd column (source) changed to 'GeneExt' 
-	- inferred orphan peaks - exon,transcript/gene triplets per orphan cluster; 'GeneExt_orphan'
+The resulting gtf file will contain:  
+	- input features - untouched   
+	- input transcripts extended - the 2nd column (source) changed to 'GeneExt'   
+	- inferred orphan peaks - exon,transcript/gene triplets per orphan cluster; 'GeneExt_orphan'  
 
 The updated features can be easily tracked by their source column (2nd):  
 
