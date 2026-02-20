@@ -33,7 +33,7 @@ parser.add_argument('-m','--maxdist', default = None, help = 'Maximal distance f
 parser.add_argument('-inf', default = None, help = 'Input genes file format, if None, will be guessed from a file extension.')
 parser.add_argument('-ouf', default = None, help = 'Output file format, if not given, will be guessed from a file extension.')
 parser.add_argument('-t', default = None, help = 'Temporary directory. [tmp_{output_file_prefix}]')
-parser.add_argument('-tag', default = str('GeneExt'), help = 'Tag to be added to the fake gene source and IDs so these can be easily identified downstream. [GE]')
+parser.add_argument('-tag', default = str('GeneExt'), help = 'Tag to be added to the fake gene source and IDs so these can be easily identified downstream. [GeneExt]')
 parser.add_argument('-v','--verbose', default = int(0), help = 'Verbosity level. [0],1,2,3')
 parser.add_argument('-j','--jobs', default = '1', help = 'Number of parallel cores. [1]')
 parser.add_argument('--output_mode', default = 'new_transcript', help = 'How to extend the gene (only for .gff/.gtf files) [new_transcript]\n\t* new_transcript - creates a new transcript feature with the last exon extended\n\t* new_exon - creates an extended last exon')
@@ -156,7 +156,7 @@ def run_orphan():
         console.print(f' {orphan_merged_bed}',style = 'yellow')
         if verbose:
             print('Orphan peaks: merged peaks - %s' % orphan_merged_bed)
-        helper.add_orphan_peaks(infile = outputfile,peaksbed=orphan_merged_bed,fmt = outfmt,verbose=verbose,tag = tag)
+        helper.add_orphan_peaks(infile = outputfile,peaksbed=orphan_merged_bed,fmt = outfmt,verbose=verbose,tag = tag + '_orphan')
         orphan_bed = orphan_merged_bed
     else:
         if verbose>2:

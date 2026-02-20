@@ -1,14 +1,14 @@
-name: geneext
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 dependencies:
+  - python=3.9
   - bedtools
+  - samtools
+  - pysam
   - gffutils
-  - macs2
   - numpy
   - pandas
-  - pysam
+  - pyyaml
   - rich
-  - samtools
