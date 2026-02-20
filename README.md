@@ -29,10 +29,10 @@ python geneext.py -g test_data/annotation.gtf -b test_data/alignments.bam -o res
 
 This should generate `result.gtf` file and a temporary directory `tmp/` with the intermediate files useful for debugging. 
 For instance:  
-	- `tmp/extensions.tsv` - gene_id, peak_id, extension length - usefull for plotting the distribution of extensions 
-	- `tmp/allpeaks_coverage.bed` - all peaks with normalized coverage 
-	- `tmp/allpeaks_noov_fcov.bed` - all peaks not overlapping the genes that have been coverage-filtered 
-	- `tmp/orphan_merged.bed` - the final list of the orphan peaks added 
+	- `tmp/extensions.tsv` - gene_id, peak_id, extension length - usefull for plotting the distribution of extensions   
+	- `tmp/allpeaks_coverage.bed` - all peaks with normalized coverage   
+	- `tmp/allpeaks_noov_fcov.bed` - all peaks not overlapping the genes that have been coverage-filtered  
+	- `tmp/orphan_merged.bed` - the final list of the orphan peaks added  
 
 
 
