@@ -1,7 +1,7 @@
 !['header'](./img/logo.png)  
 # Manual  
 
-Genomes often have incomplete annotations of their 3-prime untranslated regions (3'-UTRs). At the same time, some of the most popular single-cell RNA sequencing methods are biased towards 3' ends of mRNA molecules. In result, this creates a bias in gene counting for genes with missing fragments of 3'-UTRs:   
+Genomes often have incomplete annotations of their 3-prime untranslated regions (3'-UTRs). At the same time, some of the most popular single-cell RNA sequencing methods are biased towards 3' ends of mRNA molecules. As a result, this creates a bias in gene counting for genes with missing fragments of 3'-UTRs:   
 ![Gene_counting](./img/gene_counting_problem.png)
 
 `GeneExt` aims to refine gene models in the reference genome by leveraging the scRNA-seq data itself (or similar 3'-biased transcriptomics data). `GeneExt` not only improves UMI count accuracy per gene but also resolves gene overlap issues.
@@ -23,7 +23,7 @@ Genomes often have incomplete annotations of their 3-prime untranslated regions 
 
 !['Gene extension'](./img/max_ext.png)
 
-Thus, instead of setting `-m` to unrealistically big values, we advice setting it to something biologically meaningful (e.g 1x-2x of median length of a gene) and to use it along with calling "orphan peaks" ( `--orphan` option, vis [Orphan peaks](#orphan-peaks)).
+Thus, instead of setting `-m` to unrealistically big values, we advise setting it to something biologically meaningful (e.g. 1x-2x of median length of a gene) and using it along with calling "orphan peaks" (`--orphan` option, see [Orphan peaks](#orphan-peaks)).
 
 
 ### --orphan Extension modes  
@@ -34,11 +34,11 @@ Use this option to keep [Orphan peaks](#orphan-peaks).
 ### --peak_perc Filtering peaks based on coverage  
 
 To make `GeneExt` more conservative in peak calling, peaks are filtered based on the average coverage.   
-After calling the peaks, `GeneExt` will calculate per-base coverage distribution for __genic__ peaks (i.e. peaks overlapping genes). This distribution is then used to filter __intergenic peaks__. `--peakp` sets a quantile of that distribution above which intergenic peaks are retained.  
+After calling the peaks, `GeneExt` will calculate per-base coverage distribution for __genic__ peaks (i.e. peaks overlapping genes). This distribution is then used to filter __intergenic peaks__. `--peak_perc` sets a quantile of that distribution above which intergenic peaks are retained.  
 
 ![Peak filtering](./img/peak_filtering.png)   
 
-Thus, decreasing `--peakp` will result in more peaks called and _vice versa_.   
+Thus, decreasing `--peak_perc` will result in more peaks called and _vice versa_.   
 
 ## --clip_5prime Gene overlap clipping  
 
@@ -53,20 +53,20 @@ Depending on the behavior of the UMI demultiplexing software used, gene overlaps
 ![Peak filtering](./img/5clip.png)   
 
 > [!Warning]
-> This clipping procedure is done without respecting protein-coding information containted in the downstream gene. Use with caution!   
+> This clipping procedure is done without respecting protein-coding information contained in the downstream gene. Use with caution!   
 
 
 ## Input & Output   
 To run `GeneExt`, you will need the following:  
 
-1. scRNA-seq dataset mapped to the genome - `.bam` alignment file (vis ["Where do I get a .bam file?"](#how-to-get-a-bam-file))  
+1. scRNA-seq dataset mapped to the genome - `.bam` alignment file (see ["Where do I get a .bam file?"](#how-to-get-a-bam-file))  
 2. Genome annotation in the `gff` or `gtf` format  
 
-`GeneExt` accepts following annotion input formats and converts them to the output:   
+`GeneExt` accepts the following annotation input formats and converts them to the output:   
 * `gtf` &rarr; `gtf`  
 * `gff` &rarr; `gff`  
 
-In general, `GeneExt` will try to output a properly formatted `gtf` file that can be used as an input to `cellranger mkref`. However, since `gtf` files vary in their attributes, this may not always be possible (vis [Input troubleshooting](#input-troubleshooting)).
+In general, `GeneExt` will try to output a properly formatted `gtf` file that can be used as an input to `cellranger mkref`. However, since `gtf` files vary in their attributes, this may not always be possible (see [Input troubleshooting](#input-troubleshooting)).
 Please, ensure your genome annotation file is properly formatted!   
 
 ## How to get a .bam file?   
@@ -74,7 +74,7 @@ Please, ensure your genome annotation file is properly formatted!
 If you already have used `cellranger`, then you can simply use its `.bam` file (`possorted_genome.bam`). Alternatively, you may generate an alignment yourself with any splice-aware aligner. 
 
 > [!Warning]
-> For now, `GeneExt` only accepths a single alignment file, so if you have multiple sequencing datasets, you should concatenate your scRNA-seq fastq file for the following step: 
+> For now, `GeneExt` only accepts a single alignment file, so if you have multiple sequencing datasets, you should concatenate your scRNA-seq FASTQ files for the following step: 
 
 ```cat lane1.R2.fastq.gz lane2.R2.fastq.gz > data/cells.R2.fastq.gz```
 
@@ -94,17 +94,17 @@ STAR --runMode genomeGenerate --runThreadN $NCPU --genomeDir $STARIDX --genomeFa
 STAR --genomeDir $STARIDX --outFilterMultimapNmax 10 --runThreadN $NCPU --readFilesIn $R2 --outFileNamePrefix cells --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --outSAMattributes Standard
 ```
 
-Resulting `cellsAligned.sortedByCoord.out.bam` can be used as an input for the `GeneExt`.  
+The resulting `cellsAligned.sortedByCoord.out.bam` can be used as an input for `GeneExt`.  
 
 ## BAM subsampling   
 
-Sometimes, the dataset may be too large for `GeneExt` to run in meaninful time, you can subsample the `.bam` file to N reads using an option `--subsamplebam N`. This will significantly speed up the pipeline, but may come at a cost of missing some peaks.  
+Sometimes, the dataset may be too large for `GeneExt` to run in meaningful time. You can subsample the `.bam` file to N reads using `--subsamplebam N`. This will significantly speed up the pipeline, but may come at the cost of missing some peaks.  
 
 ## Orphan peaks  
 
 ### Definition  
 
-The majority peaks not be assigned to any gene due to the distance (`-m` parameter). However, some of these peaks will correspond to really long 3'-UTRs or __unannotated genes__. 
+The majority of peaks may not be assigned to any gene due to the distance (`-m` parameter). However, some of these peaks will correspond to really long 3'-UTRs or __unannotated genes__. 
 
 To capture cases like this, `GeneExt` provides an option to keep the peaks that pass coverage filtering but haven't been assigned to any gene (e.g. they are located too far from any genic region) with an `--orphan` option.  
 
@@ -113,7 +113,7 @@ __Note:__ it may happen that you will get a lot of "orphan" peaks in your annota
 ### Orphan peak merging      
 
 Missing genes may be represented by multiple orphan peaks corresponding to exonic regions. Having such peaks will lead to including highly correlated features which is undesirable for single-cell RNAseq analyses. 
-By default, `GeneExt` will try to merge such peaks by distance unless `--nomerge` is specified.  
+By default, `GeneExt` will try to merge such peaks by distance unless `--nocluster` is specified.  
 
 ![Orphan_merging](./img/peak_clustering.png)
 
@@ -121,7 +121,7 @@ Default settings are the following:
 * Maximum distance between the peaks (`--orphan_maxdist`) - 75-th percentile of intron sizes.  
 * Maximum size of the orphan peak cluster (`--orphan_maxsize`) - median gene length.  
 
-The merged peaks are represented by a single continuos region.  
+The merged peaks are represented by a single continuous region.  
 
 ## Input troubleshooting  
 
@@ -129,7 +129,7 @@ The merged peaks are represented by a single continuos region.
 >
 > Anna Karenina principle for genome annotation files
 
-By far the most probable reason for `GeneExt` to fail are the problems with input annotation file. Below is a description of a minimal annotation file `GeneExt` can work with.  
+By far the most probable reason for `GeneExt` to fail is problems with the input annotation file. Below is a description of a minimal annotation file `GeneExt` can work with.  
 
 Imagine a gene with a single transcript and 2 exons. A properly formatted minimal GFF file should look like the following:   
 ```
@@ -146,7 +146,7 @@ chr1  source  exon  1 40  . + . gene_id "gene1"; transcript_id "transcript1"
 chr1  source  exon  70 100  . + . gene_id "gene1"; transcript_id "transcript1"   
 ```
 
-The most common problems with gtf/gff files:   
+The most common problems with GTF/GFF files:   
 1. Missing "gene" features - `GeneExt` will try to infer missing "gene" features.
 2. Missing "transcript" features - `GeneExt` can't infer transcripts at the moment. Please, check if your annotation file at least contains exons and transcripts.    
 3. "gene" and "transcript" features have the same IDs - `GeneExt` may have troubles when parsing the file.  
@@ -164,8 +164,8 @@ See [Input troubleshooting](#input-troubleshooting)
 
 1. `.bam` subsampling:    
   By default, `GeneExt` will use the whole dataset to call the peaks. This may be computationally costly for big datasets (>50M reads). You can use `--subsamplebam 10000000` to randomly sample 10M reads (or any other amount). Keep in mind, __using more data is always better.__  
-2. Use multiple threads with `-j` option.
-2. Split your bam files by chromosomes:  
+2. Use multiple threads with the `-j` option.
+3. Split your BAM files by chromosomes:  
   You can split your genome into individual chromosomes / contigs and run `GeneExt` on each of them separately  
 
 ## I get too many peaks. How should I filter them?   
@@ -175,5 +175,4 @@ If you wish to remove more peaks, you may increase the `--orphan_maxdist` parame
 
 ## Some orphan peaks look like missing genes - how can I link them? 
 For the specified peaks you want to merge, you can manually change the `gene.id` attribute in every peak to a common value (e.g. an 'unknown_gene_1'). If you observe a lot of such cases, you can try increasing parameters for orphan peak clustering and merging (`--orphan_maxdist`,`--orphan_maxsize`) so that these orphan peaks will end up called as clusters.   
-
 
