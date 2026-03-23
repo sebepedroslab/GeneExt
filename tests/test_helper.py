@@ -18,6 +18,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from geneext.helper import (
     Region,
+    add_gene_features,
     get_prefixed_path,
     get_extension,
     parse_bed,
@@ -321,6 +322,39 @@ class TestGuessFormatIntegration:
                 guess_format_fromfile(path)
         finally:
             os.unlink(path)
+
+
+class TestAddGeneFeatures:
+    def test_returns_added_gene_ids_for_gtf_without_genes(self):
+        gtf_in = _tmp(
+            "\n".join(
+                [
+                    'chr1\t.\ttranscript\t100\t200\t.\t+\t.\ttranscript_id "t1"; gene_id "g1";',
+                    'chr1\t.\texon\t100\t120\t.\t+\t.\ttranscript_id "t1"; gene_id "g1";',
+                    'chr1\t.\ttranscript\t300\t450\t.\t-\t.\ttranscript_id "t2"; gene_id "g2";',
+                    'chr1\t.\texon\t400\t450\t.\t-\t.\ttranscript_id "t2"; gene_id "g2";',
+                    "",
+                ]
+            ),
+            suffix=".gtf",
+        )
+        gtf_out = tempfile.mktemp(suffix=".gtf")
+        try:
+            added = add_gene_features(
+                infile=gtf_in,
+                outfile=gtf_out,
+                infmt="gtf",
+                verbose=False,
+            )
+            assert isinstance(added, list)
+            assert set(added) == {"g1", "g2"}
+            out_txt = open(gtf_out).read()
+            assert '\tgene\t' in out_txt
+        finally:
+            if os.path.exists(gtf_in):
+                os.unlink(gtf_in)
+            if os.path.exists(gtf_out):
+                os.unlink(gtf_out)
 
 
 # ---------------------------------------------------------------------------

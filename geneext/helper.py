@@ -1481,15 +1481,19 @@ def add_gene_features(infile = None,outfile = None, infmt = None,verbose = False
 			if verbose > 1 and i % 1000 == 0:
 				print('%s/%s transcrpts done.' % (i,len(t2g)))
 			if verbose > 2:
-				print(feature.id)   
+				print(feature.id)
+			geneid = t2g.get(feature.id)
+			if not geneid:
+				continue
+			# Process each gene only once to avoid duplicate transcript/exon output.
+			if geneid in genes_written:
+				continue
+			genes_written.append(geneid)
 			# check if there is a gene_id 
 			if infmt == 'gtf':
 				gene = feature
 				gene.featuretype = 'gene'
-				geneid = t2g[gene.id]
-				if not geneid in genes_written:
-					ofile.write(str_gtf(gene,attributes = ['gene_id']) + '\n') 
-					genes_written.append(geneid)
+				ofile.write(str_gtf(gene,attributes = ['gene_id']) + '\n')
 				#transcripts = [feature for feature in db.features_of_type('transcript') if geneid in feature['gene_id']]
 				transcripts = [db[id] for id in g2t[geneid]]
 				if verbose > 2:
@@ -1512,7 +1516,6 @@ def add_gene_features(infile = None,outfile = None, infmt = None,verbose = False
 					gene = feature
 					gene.featuretype = 'gene'
 					gene['ID'] = gene['Parent'][0]
-					geneid = gene['Parent'][0]
 					ofile.write(str_gff(gene,attributes = ['ID']) + ';\n')
 					# write the gene:
 					#geneid = gene['Parent'][0]
@@ -1526,6 +1529,7 @@ def add_gene_features(infile = None,outfile = None, infmt = None,verbose = False
 							ofile.write(str(child) + '\n')
 				else:
 					print('No parent found for transcript %s, where are the genes?' % feature.id)
+	return(genes_written)
 
 def add_transcript_features(infile = None,outfile = None, infmt = None,verbose = False):
 	# guess transcript features from the exons 
@@ -1670,6 +1674,8 @@ def select_longest_transcript(infile= None,outfile = None,infmt = None,outfmt = 
 #                        for child in db.children(transcript_id):
 #                            ofile.write(str(child)+ '\n')
 
+
+	return(genes_written)
 
 
 ######################### 5' clipping ########################################

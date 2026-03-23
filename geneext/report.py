@@ -19,6 +19,7 @@ import datetime
 import json
 import math
 import os
+import re
 
 import numpy as np
 import pandas as pd
@@ -173,8 +174,12 @@ def _parse_mapping_stats(path: str) -> list[dict]:
             line = raw.strip()
             if not line:
                 continue
-            # Header line looks like: "/path/to/file.gtf:"
-            if line.endswith(":") and "/" in line:
+            # Header line usually looks like: "/path/to/file.gtf:"
+            # but allow basename-only labels as well.
+            if line.endswith(":") and not re.match(
+                r"^(Total reads|Mapped reads|Genic reads|Orphan peaks|Intergenic reads):",
+                line,
+            ):
                 if cur:
                     results.append(cur)
                 cur = {"label": line.rstrip(":")}
@@ -200,6 +205,125 @@ def _parse_mapping_stats(path: str) -> list[dict]:
     if cur:
         results.append(cur)
     return results
+
+
+def _read_fix_info(tempdir: str) -> dict:
+    """
+    Read structured fix metadata emitted by geneext.py.
+    """
+    default = {
+        "schema": "v1",
+        "input_genefile": "",
+        "final_genefile": "",
+        "rerun_mode": False,
+        "force_mode": False,
+        "skipped_steps": [],
+        "extension_param": {
+            "name": "--maxdist",
+            "mode": "",
+            "user_value_bp": None,
+            "effective_value_bp": None,
+            "auto_quantile": None,
+        },
+        "steps": {
+            "mRNA_to_transcript": {"applied": False},
+            "gene_features_added": {"applied": False, "n_genes_added": 0, "gene_ids_file": ""},
+            "clip_5prime": {"applied": False, "n_events": 0, "n_genes_clipped": 0, "log_file": "", "gene_ids_file": ""},
+        },
+    }
+    path = os.path.join(tempdir, "report_fix_info.json")
+    if not os.path.exists(path):
+        return default
+    try:
+        with open(path, "r") as fh:
+            raw = json.load(fh)
+        if not isinstance(raw, dict):
+            return default
+        steps = raw.get("steps", {}) if isinstance(raw.get("steps", {}), dict) else {}
+        skipped_steps = raw.get("skipped_steps", [])
+        if not isinstance(skipped_steps, list):
+            skipped_steps = []
+        ext_param = raw.get("extension_param", {})
+        if not isinstance(ext_param, dict):
+            ext_param = {}
+        out = default.copy()
+        out.update({
+            k: raw.get(k, out.get(k))
+            for k in ["schema", "input_genefile", "final_genefile", "rerun_mode", "force_mode"]
+        })
+        out["skipped_steps"] = [str(x) for x in skipped_steps]
+        out["extension_param"] = {
+            "name": ext_param.get("name", out["extension_param"]["name"]),
+            "mode": ext_param.get("mode", out["extension_param"]["mode"]),
+            "user_value_bp": ext_param.get("user_value_bp", out["extension_param"]["user_value_bp"]),
+            "effective_value_bp": ext_param.get("effective_value_bp", out["extension_param"]["effective_value_bp"]),
+            "auto_quantile": ext_param.get("auto_quantile", out["extension_param"]["auto_quantile"]),
+        }
+        out["steps"] = {
+            "mRNA_to_transcript": steps.get("mRNA_to_transcript", out["steps"]["mRNA_to_transcript"]),
+            "gene_features_added": steps.get("gene_features_added", out["steps"]["gene_features_added"]),
+            "clip_5prime": steps.get("clip_5prime", out["steps"]["clip_5prime"]),
+        }
+        return out
+    except Exception:
+        return default
+
+
+def _parse_run_log(path: str) -> dict:
+    """
+    Parse GeneExt textual log for command, stages and notable messages.
+    """
+    out = {
+        "exists": False,
+        "command": "",
+        "sections": [],
+        "notes": [],
+        "genome_fix_detected": False,
+        "log_file": os.path.basename(path),
+    }
+    if not os.path.exists(path):
+        return out
+
+    out["exists"] = True
+    try:
+        with open(path, "r", errors="replace") as fh:
+            lines = [ln.rstrip("\n") for ln in fh]
+    except Exception:
+        return out
+
+    cmd_pat = re.compile(r"^(python(?:\d+(?:\.\d+)?)?\s+.*\bgeneext\.py\b|.*\bgeneext\.py\b.*)$")
+    for ln in lines:
+        txt = ln.strip()
+        if not txt:
+            continue
+        if cmd_pat.search(txt):
+            out["command"] = txt
+            break
+
+    seen_sections = set()
+    notes = []
+    for raw in lines:
+        line = raw.strip()
+        if not line:
+            continue
+
+        m = re.search(r"^│\s*(.*?)\s*│$", line)
+        if m:
+            sec = m.group(1).strip()
+            if sec and sec not in seen_sections:
+                seen_sections.add(sec)
+                out["sections"].append(sec)
+
+        low = line.lower()
+        if any(k in low for k in ["trying to fix", "fixed genome", "found fixed genome", "--onlyfix", "5' clipping"]):
+            out["genome_fix_detected"] = True
+
+        if any(k in low for k in ["warning", "error", "trying to fix", "found fixed genome", "subsampling", "filtering", "peak", "extension"]):
+            if line not in notes:
+                notes.append(line)
+
+    out["notes"] = notes[:8]
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -264,6 +388,7 @@ def generate_html_report(
 
     n_extended  = len(ext_lengths)
     pct_extended = round(n_extended / n_genes * 100, 1) if n_genes > 0 else 0.0
+    min_ext      = round(float(np.min(ext_lengths)),    1) if ext_lengths else 0.0
     median_ext   = round(float(np.median(ext_lengths)), 1) if ext_lengths else 0.0
     mean_ext     = round(float(np.mean(ext_lengths)),   1) if ext_lengths else 0.0
     max_ext      = round(float(np.max(ext_lengths)),    1) if ext_lengths else 0.0
@@ -287,16 +412,47 @@ def generate_html_report(
 
     # ── Orphan peaks (prefer merged clusters) ────────────────────────────────
     orphan_bed_text = ""
+    n_orphan_merged = 0
     for _fname in ("orphan_merged.bed", "orphan.bed"):
         _p = os.path.join(tempdir, _fname)
         if os.path.exists(_p):
             try:
                 with open(_p) as _f:
                     orphan_bed_text = _f.read()
+                n_orphan_merged = sum(
+                    1
+                    for line in orphan_bed_text.splitlines()
+                    if line.strip() and not line.startswith("#")
+                )
             except Exception:
                 pass
             break
-    n_orphan_merged = orphan_bed_text.count("\n") if orphan_bed_text else 0
+
+    # ── Peak-flow metrics for report diagram ─────────────────────────────────
+    n_initial_called = _count_bed_lines(os.path.join(tempdir, "allpeaks.bed"))
+    filtered_path = ""
+    for _fname in ("allpeaks_noov_fcov.bed", "allpeaks_noov.bed"):
+        _p = os.path.join(tempdir, _fname)
+        if os.path.exists(_p):
+            filtered_path = _p
+            break
+    n_passed_filter = _count_bed_lines(filtered_path) if filtered_path else 0
+    n_assigned_gene = len(
+        {
+            str(r.get("peak", "")).strip()
+            for r in ext_table
+            if str(r.get("peak", "")).strip()
+        }
+    )
+    peak_flow = {
+        "has_macs2_peaks": n_initial_called > 0,
+        "initial_called": n_initial_called,
+        "passed_filtering": n_passed_filter,
+        "assigned_to_genes": n_assigned_gene,
+        "orphan_enabled": bool(orphan_bed_text),
+        "orphan_count": n_orphan_merged,
+        "filtered_file": os.path.basename(filtered_path) if filtered_path else "",
+    }
 
     # ── Reads (from MACS2 xls) ───────────────────────────────────────────────
     reads_info = _get_reads_info(tempdir)
@@ -309,11 +465,33 @@ def generate_html_report(
     )
 
     # ── Assemble payload ─────────────────────────────────────────────────────
+    input_basename = os.path.basename(genefile)
+    fix_info = _read_fix_info(tempdir)
+    log_info = _parse_run_log(outputfile + ".GeneExt.log")
+    gf_added = bool(fix_info.get("steps", {}).get("gene_features_added", {}).get("applied"))
+    mrna_fixed = bool(fix_info.get("steps", {}).get("mRNA_to_transcript", {}).get("applied"))
+    clipped5 = bool(fix_info.get("steps", {}).get("clip_5prime", {}).get("applied"))
+    genome_fixed = (
+        ".fixed." in input_basename
+        or input_basename.startswith("genome.fixed.")
+        or bool(log_info.get("genome_fix_detected"))
+        or gf_added
+        or mrna_fixed
+        or clipped5
+    )
+    command_text = run_args or log_info.get("command")
+    # Keep subsampling flag robust even when subsampled.bam is missing from tmp.
+    # This can happen in rerun/cleanup scenarios, but the run still used subsampling.
+    cmd_low = (command_text or "").lower()
+    if ("--subsamplebam" in cmd_low) or ("-subsamplebam" in cmd_low):
+        reads_info["subsampled"] = True
+
     payload = {
         "summary": {
             "n_genes":        n_genes,
             "n_extended":     n_extended,
             "pct_extended":   pct_extended,
+            "min_ext":        min_ext,
             "median_ext":     median_ext,
             "mean_ext":       mean_ext,
             "max_ext":        max_ext,
@@ -325,9 +503,12 @@ def generate_html_report(
             "n_reads":        reads_info["n_reads"],
             "subsampled":     reads_info["subsampled"],
             "output_file":    os.path.basename(outputfile),
-            "input_file":     os.path.basename(genefile),
+            "input_file":     input_basename,
+            "genome_fixed":   genome_fixed,
+            "log_genome_fix": bool(log_info.get("genome_fix_detected")),
+            "log_file":       log_info.get("log_file") if log_info.get("exists") else "",
             "run_date":       datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "run_args":       run_args,
+            "run_args":       command_text,
         },
         "ext_hist":  {"labels": ext_labels, "counts": ext_counts},
         "cov_hist":  {
@@ -339,6 +520,10 @@ def generate_html_report(
         "mapping_stats": mapping_stats,
         "ext_table": ext_table,
         "orphan_bed": orphan_bed_text,
+        "peak_flow": peak_flow,
+        "log_sections": log_info.get("sections", []),
+        "log_notes": log_info.get("notes", []),
+        "fix_info": fix_info,
     }
 
     html = _render_html(payload, logo_b64=logo_b64)
@@ -353,11 +538,11 @@ def generate_html_report(
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _render_html(data: dict, logo_b64: str = "") -> str:
-    payload_json = json.dumps(data, indent=None, separators=(",", ":"))
+    payload_json = _safe_json_for_html(data)
     s = data["summary"]
     logo_html = (
         f'<img src="data:image/png;base64,{logo_b64}"'
-        f' style="height:34px;width:auto;display:block">'
+        f' style="display:block">'
         if logo_b64 else
         '<div class="logo-icon">G</div>'
     )
@@ -369,21 +554,26 @@ def _render_html(data: dict, logo_b64: str = "") -> str:
 <title>GeneExt — {s['output_file']}</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
+:root{{font-size:17px}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
       background:#f0f2f5;color:#1a2332;min-height:100vh}}
 
 /* ── header ─────────────────────────────────────────────────────────────── */
-header{{background:linear-gradient(135deg,#0f3460 0%,#16213e 60%,#0a1628 100%);
-        color:#fff;padding:16px 36px;display:flex;align-items:stretch;
-        justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.35)}}
-.logo{{display:flex;align-items:center}}
-.logo img{{height:100%;max-height:64px;min-height:40px;width:auto;display:block;
-           filter:brightness(0) invert(1)}}
-.logo-icon{{width:50px;height:50px;background:linear-gradient(135deg,#00b4d8,#48cae4);
+header{{background:#ffffff;color:#1a2332;box-shadow:0 2px 12px rgba(0,0,0,.15)}}
+.header-inner{{max-width:1200px;margin:0 auto;padding:14px 24px;min-height:138px;
+              display:flex;align-items:center;gap:16px;position:relative}}
+.logo{{display:flex;align-items:center;justify-content:flex-start;flex:1}}
+.logo img{{height:120px;max-width:72vw;width:auto;display:block;object-fit:contain}}
+.logo-icon{{width:64px;height:64px;background:linear-gradient(135deg,#00b4d8,#48cae4);
             border-radius:12px;display:flex;align-items:center;justify-content:center;
             font-size:26px;font-weight:900;color:#0f3460;flex-shrink:0}}
-.run-meta{{text-align:right;font-size:.72rem;opacity:.65;line-height:1.8;
-           display:flex;flex-direction:column;justify-content:center}}
+.run-meta{{margin-left:auto;text-align:right;font-size:.72rem;opacity:.85;line-height:1.8;color:#42566f;
+           display:flex;flex-direction:column;justify-content:center;min-width:230px}}
+@media(max-width:900px){{
+  .header-inner{{padding:12px 24px;min-height:108px}}
+  .logo img{{height:88px;max-width:68vw}}
+  .run-meta{{font-size:.64rem;line-height:1.55;min-width:0}}
+}}
 
 /* ── main container ──────────────────────────────────────────────────────── */
 main{{max-width:1200px;margin:28px auto;padding:0 24px}}
@@ -424,6 +614,33 @@ main{{max-width:1200px;margin:28px auto;padding:0 24px}}
 .chart-card p{{font-size:.72rem;color:#8695a8;margin-bottom:14px}}
 .chart-wrap{{position:relative;height:260px}}
 
+/* ── extension parameter section ────────────────────────────────────────── */
+.ext-param-layout{{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:20px;margin-bottom:28px}}
+@media(max-width:900px){{.ext-param-layout{{grid-template-columns:1fr}}}}
+.ext-param-card{{background:#fff;border-radius:12px;padding:18px 20px;
+                 box-shadow:0 1px 4px rgba(0,0,0,.08)}}
+.ext-param-card h3{{font-size:.85rem;font-weight:700;color:#1a2332;margin-bottom:6px}}
+.ext-param-card p{{font-size:.78rem;color:#5a7194;line-height:1.55;margin:4px 0}}
+
+/* ── peak-flow diagram ───────────────────────────────────────────────────── */
+.flow-card{{background:#fff;border-radius:12px;padding:20px 22px;
+           box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:28px}}
+.peak-flow-layout{{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}}
+@media(max-width:900px){{.peak-flow-layout{{grid-template-columns:1fr}}}}
+.flow-card.compact{{margin-bottom:0}}
+.flow-row{{display:flex;flex-direction:column;align-items:center;gap:8px}}
+.flow-node{{background:#f7f9fd;border:1px solid #dce3ee;border-radius:10px;
+            border-top:3px solid transparent;padding:12px 14px;min-width:220px}}
+.flow-node .n{{font-size:1.9rem;font-weight:800;color:#1a2332;line-height:1}}
+.flow-node .l{{font-size:.7rem;color:#5a7194;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}}
+.flow-node.accent-teal{{border-top-color:#00b4d8}}
+.flow-node.accent-green{{border-top-color:#06d6a0}}
+.flow-node.accent-blue{{border-top-color:#4d9ef5}}
+.flow-node.accent-purple{{border-top-color:#a55eea}}
+.flow-arrow{{color:#8fa1b8;font-size:1.1rem;font-weight:700;line-height:1}}
+.flow-arrow.down{{margin-left:0}}
+.flow-branch{{margin-top:8px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#5a7194;font-size:.75rem;text-align:center}}
+
 /* ── mapping table ───────────────────────────────────────────────────────── */
 .table-card{{background:#fff;border-radius:12px;padding:20px 22px;
              box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:28px}}
@@ -449,6 +666,10 @@ td.num{{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}}
            box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:28px}}
 .args-box pre{{font-size:.73rem;color:#5a7194;white-space:pre-wrap;
                word-break:break-all;line-height:1.55}}
+.args-meta{{margin-top:10px;font-size:.72rem;color:#5a7194;line-height:1.5}}
+.args-meta p{{margin:2px 0}}
+.args-meta ul{{margin:8px 0 0 16px;padding:0}}
+.args-meta li{{margin:2px 0}}
 
 /* ── footer ──────────────────────────────────────────────────────────────── */
 footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
@@ -460,6 +681,16 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
 /* ── clickable card ──────────────────────────────────────────────────────── */
 .card.clickable{{cursor:pointer}}
 .card.clickable:hover{{box-shadow:0 6px 20px rgba(0,0,0,.16);transform:translateY(-1px)}}
+
+/* ── download buttons ────────────────────────────────────────────────────── */
+.btn-dl{{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+         border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;
+         border:1px solid #dce3ee;background:#f4f7fb;color:#5a7194;
+         text-decoration:none;transition:all .15s;white-space:nowrap}}
+.btn-dl:hover{{background:#e8f4fd;border-color:#00b4d8;color:#0f3460}}
+.btn-dl-sm{{display:inline-block;font-size:.62rem;color:#00b4d8;
+            margin-top:4px;cursor:pointer}}
+.btn-dl-sm:hover{{text-decoration:underline}}
 
 /* ── modal ───────────────────────────────────────────────────────────────── */
 .modal-backdrop{{display:none;position:fixed;inset:0;background:rgba(10,22,40,.55);
@@ -495,28 +726,40 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
 <body>
 
 <header>
-  <div class="logo">
-    {logo_html}
-  </div>
-  <div class="run-meta">
-    <div>Output: <strong>{s['output_file']}</strong></div>
-    <div>Input: {s['input_file']}</div>
-    <div>{s['run_date']}</div>
+  <div class="header-inner">
+    <div class="logo">
+      {logo_html}
+    </div>
+    <div class="run-meta">
+      <div>Output: <strong>{s['output_file']}</strong></div>
+      <div>Input: {s['input_file']}</div>
+      {('<div style="color:#2f8f46;font-weight:700">Genome annotation fixed</div>' if s.get('genome_fixed') else '')}
+      <div>{s['run_date']}</div>
+    </div>
   </div>
 </header>
 
 <main>
 
+  <!-- ── Command args ──────────────────────────────────────────────────── -->
+  <div id="argsSection"></div>
+  <div id="genomeFixSection"></div>
+
   <!-- ── Summary cards ─────────────────────────────────────────────────── -->
   <p class="section-title">Run summary</p>
   <div id="summaryCards"></div>
 
-  <!-- ── Charts ────────────────────────────────────────────────────────── -->
-  <p class="section-title">Distributions</p>
-  <div class="charts">
+  <!-- ── Extension parameter + extension distribution ──────────────────── -->
+  <p class="section-title">Extension Parameter</p>
+  <div class="ext-param-layout">
+    <div class="ext-param-card">
+      <h3>Extension limit (`-m` / `--maxdist`)</h3>
+      <div id="extensionParamSummary" class="args-meta"></div>
+    </div>
     <div class="chart-card">
       <h3>Gene-extension length distribution</h3>
       <p>Number of base-pairs each gene was extended at its 3&prime; end</p>
+      <p id="extStatsLabel" style="font-size:.72rem;color:#5a7194;margin-bottom:10px"></p>
       <div class="chart-wrap">
         <canvas id="extChart"></canvas>
         <div class="chart-unavailable" id="extNA">
@@ -524,6 +767,12 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ── Peak filtering flow + coverage distribution ───────────────────── -->
+  <p class="section-title">Peak Filtering Flow</p>
+  <div class="peak-flow-layout">
+    <div id="peakFlowSection"></div>
     <div class="chart-card">
       <h3>Peak-coverage distribution (log&#x2081;&#x2080;)</h3>
       <p>
@@ -543,9 +792,6 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
   <!-- ── Mapping table (only if --estimate) ────────────────────────────── -->
   <div id="mappingSection"></div>
 
-  <!-- ── Command args ──────────────────────────────────────────────────── -->
-  <div id="argsSection"></div>
-
 </main>
 
 <!-- ── Extended genes modal ──────────────────────────────────────────────── -->
@@ -553,7 +799,10 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
   <div class="modal">
     <div class="modal-header">
       <h2>Extended genes</h2>
-      <button class="modal-close" id="extModalClose" aria-label="Close">&times;</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-dl" id="extDownloadBtn">&#8595; Download TSV</button>
+        <button class="modal-close" id="extModalClose" aria-label="Close">&times;</button>
+      </div>
     </div>
     <div class="modal-search">
       <input type="search" id="extSearch" placeholder="Filter by gene or peak ID&hellip;">
@@ -574,6 +823,37 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
   </div>
 </div>
 
+<!-- ── Orphan peaks modal ──────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="orphanModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Orphan peak clusters</h2>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-dl" id="orphanDownloadBtn">&#8595; Download BED</button>
+        <button class="modal-close" id="orphanModalClose" aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="modal-search">
+      <input type="search" id="orphanSearch" placeholder="Filter by chromosome, peak ID, or strand&hellip;">
+    </div>
+    <div class="modal-body">
+      <table id="orphanTable">
+        <thead>
+          <tr>
+            <th data-col="chrom">Chrom <span class="sort-icon">&#9661;</span></th>
+            <th data-col="start" class="sort-active">Start <span class="sort-icon">&#9650;</span></th>
+            <th data-col="end">End <span class="sort-icon">&#9661;</span></th>
+            <th data-col="id">Peak ID <span class="sort-icon">&#9661;</span></th>
+            <th data-col="strand">Strand <span class="sort-icon">&#9661;</span></th>
+          </tr>
+        </thead>
+        <tbody id="orphanTableBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer" id="orphanTableFooter"></div>
+  </div>
+</div>
+
 <footer>Generated by GeneExt &bull; {s['run_date']}</footer>
 
 <!-- Chart.js via CDN (requires internet); charts degrade gracefully offline -->
@@ -587,6 +867,16 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
 const D = {payload_json};
 const S = D.summary;
 
+function escHtml(value) {{
+  var safe = (value === null || value === undefined) ? '' : String(value);
+  return safe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}}
+
 // ── Stat cards (grouped) ────────────────────────────────────────────────────
 const readsLabel = S.n_reads
   ? (S.n_reads.toLocaleString() + (S.subsampled ? ' &#9432;' : ''))
@@ -595,23 +885,25 @@ const readsHint = S.subsampled
   ? '<div style="font-size:.62rem;color:#ff9f43;margin-top:4px">&#9888; BAM was subsampled</div>'
   : '';
 
+function fmtInt(value) {{
+  return (typeof value === 'number') ? value.toLocaleString() : value;
+}}
+
 const CARD_GROUPS = [
   {{
     title: 'Gene Extension',
     cards: [
       {{value: S.n_extended, suffix: '/' + S.n_genes, label: 'Genes extended',     cls: 'accent-teal',   id: 'cardGenesExtended', clickable: true}},
       {{value: S.pct_extended, suffix: '%',            label: 'Extension rate',     cls: 'accent-green'}},
-      {{value: S.median_ext,   suffix: 'bp',           label: 'Median extension',   cls: 'accent-orange'}},
-      {{value: S.mean_ext,     suffix: 'bp',           label: 'Mean extension',     cls: 'accent-blue'}},
-      {{value: S.max_ext,      suffix: 'bp',           label: 'Max extension',      cls: 'accent-purple'}},
     ]
   }},
   {{
     title: 'Peaks',
     cards: [
-      {{value: S.n_genic_peaks, suffix: '',  label: 'Genic peaks',              cls: 'accent-teal'}},
-      {{value: S.n_noov_peaks,  suffix: '',  label: 'Non-overlapping peaks',    cls: 'accent-blue'}},
-      ...(S.n_orphan_peaks ? [{{value: S.n_orphan_peaks, suffix: '', label: 'Orphan peak clusters', cls: 'accent-purple'}}] : []),
+      {{value: fmtInt(S.n_genic_peaks), suffix: '',  label: 'Genic peaks',              cls: 'accent-teal'}},
+      {{value: fmtInt(S.n_noov_peaks),  suffix: '',  label: 'Non-overlapping peaks',    cls: 'accent-blue'}},
+      ...(S.n_orphan_peaks ? [{{value: fmtInt(S.n_orphan_peaks), suffix: '', label: 'Orphan peak clusters', cls: 'accent-purple', id: 'cardOrphanPeaks', clickable: true,
+        extraHint: D.orphan_bed ? '<span class="btn-dl-sm" onclick="downloadOrphanBed(event)">&#8595; Download BED</span>' : ''}}] : []),
       {{value: S.cov_percentile || '—', suffix: S.cov_percentile ? 'th pct' : '', label: 'Coverage percentile', cls: 'accent-red'}},
     ]
   }},
@@ -646,6 +938,57 @@ const CARD_GROUPS = [
   }});
   const geCard = document.getElementById('cardGenesExtended');
   if (geCard) geCard.addEventListener('click', openExtModal);
+  const orphanCard = document.getElementById('cardOrphanPeaks');
+  if (orphanCard) orphanCard.addEventListener('click', openOrphanModal);
+}})();
+
+// ── Peak filtering flow ───────────────────────────────────────────────────
+(function buildPeakFlow() {{
+  const PF = D.peak_flow || {{}};
+  if (!PF.has_macs2_peaks) {{
+    document.getElementById('peakFlowSection').innerHTML = `
+      <div class="flow-card compact">
+        <p style="font-size:.8rem;color:#8695a8">No MACS2 peak-calling output found; flow summary is unavailable.</p>
+      </div>`;
+    return;
+  }}
+
+  const fmt = v => Number(v || 0).toLocaleString();
+  const orphanNode = PF.orphan_enabled
+    ? `<div class="flow-branch">
+         <span>Orphan option enabled (from filtered peaks)</span>
+         <span class="flow-arrow down">&#8595;</span>
+         <div class="flow-node accent-purple">
+           <div class="n">${{fmt(PF.orphan_count)}}</div>
+           <div class="l">Orphan peaks/clusters</div>
+         </div>
+       </div>`
+    : '';
+  const filteredNote = PF.filtered_file
+    ? `<p style="font-size:.7rem;color:#8695a8;margin-top:8px">Filtered peaks source: ${{escHtml(PF.filtered_file)}}</p>`
+    : '';
+
+  document.getElementById('peakFlowSection').innerHTML = `
+    <div class="flow-card compact">
+      <div class="flow-row">
+        <div class="flow-node accent-teal">
+          <div class="n">${{fmt(PF.initial_called)}}</div>
+          <div class="l">Initial MACS2 peaks</div>
+        </div>
+        <span class="flow-arrow down">&#8595;</span>
+        <div class="flow-node accent-green">
+          <div class="n">${{fmt(PF.passed_filtering)}}</div>
+          <div class="l">Passed filtering</div>
+        </div>
+        <span class="flow-arrow down">&#8595;</span>
+        <div class="flow-node accent-blue">
+          <div class="n">${{fmt(PF.assigned_to_genes)}}</div>
+          <div class="l">Assigned to genes</div>
+        </div>
+      </div>
+      ${{orphanNode}}
+      ${{filteredNote}}
+    </div>`;
 }})();
 
 // ── Extended genes modal ────────────────────────────────────────────────────
@@ -665,8 +1008,8 @@ function renderExtTable() {{
   const tbody = document.getElementById('extTableBody');
   tbody.innerHTML = extFilteredRows.map(r => `
     <tr>
-      <td>${{r.gene}}</td>
-      <td>${{r.peak}}</td>
+      <td>${{escHtml(r.gene)}}</td>
+      <td>${{escHtml(r.peak)}}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">${{r.ext.toLocaleString()}}</td>
     </tr>`).join('');
   document.getElementById('extTableFooter').textContent =
@@ -700,7 +1043,7 @@ document.getElementById('extModal').addEventListener('click', e => {{
   if (e.target === document.getElementById('extModal')) closeExtModal();
 }});
 document.addEventListener('keydown', e => {{
-  if (e.key === 'Escape') closeExtModal();
+  if (e.key === 'Escape') {{ closeExtModal(); closeOrphanModal(); }}
 }});
 document.getElementById('extSearch').addEventListener('input', renderExtTable);
 document.querySelectorAll('#extTable th').forEach(th => {{
@@ -711,8 +1054,129 @@ document.querySelectorAll('#extTable th').forEach(th => {{
   }});
 }});
 
+// ── Orphan peaks modal ───────────────────────────────────────────────────
+let orphanSortCol = 'start', orphanSortAsc = true;
+let orphanRows = [];
+let orphanFilteredRows = [];
+
+function parseOrphanBed() {{
+  if (!D.orphan_bed) return [];
+  const rows = [];
+  D.orphan_bed.split(/\\r?\\n/).forEach(line => {{
+    if (!line || !line.trim() || line.startsWith('#')) return;
+    const cols = line.split('\\t');
+    rows.push({{
+      chrom: cols[0] || '',
+      start: Number(cols[1] || 0),
+      end: Number(cols[2] || 0),
+      id: cols[3] || '',
+      strand: cols[5] || '',
+    }});
+  }});
+  return rows;
+}}
+
+function renderOrphanTable() {{
+  const q = (document.getElementById('orphanSearch').value || '').toLowerCase();
+  orphanFilteredRows = orphanRows.filter(r =>
+    String(r.chrom).toLowerCase().includes(q) ||
+    String(r.id).toLowerCase().includes(q) ||
+    String(r.strand).toLowerCase().includes(q)
+  );
+
+  orphanFilteredRows.sort((a, b) => {{
+    const va = a[orphanSortCol], vb = b[orphanSortCol];
+    if (typeof va === 'number') return orphanSortAsc ? va - vb : vb - va;
+    return orphanSortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  }});
+
+  const tbody = document.getElementById('orphanTableBody');
+  tbody.innerHTML = orphanFilteredRows.map(r => `
+    <tr>
+      <td>${{escHtml(r.chrom)}}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">${{r.start.toLocaleString()}}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">${{r.end.toLocaleString()}}</td>
+      <td>${{escHtml(r.id)}}</td>
+      <td>${{escHtml(r.strand)}}</td>
+    </tr>`).join('');
+
+  document.getElementById('orphanTableFooter').textContent =
+    orphanFilteredRows.length + ' of ' + orphanRows.length + ' orphan peaks';
+
+  document.querySelectorAll('#orphanTable th').forEach(th => {{
+    const icon = th.querySelector('.sort-icon');
+    if (th.dataset.col === orphanSortCol) {{
+      th.classList.add('sort-active');
+      icon.innerHTML = orphanSortAsc ? '&#9650;' : '&#9660;';
+    }} else {{
+      th.classList.remove('sort-active');
+      icon.innerHTML = '&#9661;';
+    }}
+  }});
+}}
+
+function openOrphanModal() {{
+  if (!orphanRows.length) orphanRows = parseOrphanBed();
+  document.getElementById('orphanModal').classList.add('open');
+  document.getElementById('orphanSearch').value = '';
+  orphanSortCol = 'start'; orphanSortAsc = true;
+  renderOrphanTable();
+}}
+
+function closeOrphanModal() {{
+  document.getElementById('orphanModal').classList.remove('open');
+}}
+
+document.getElementById('orphanModalClose').addEventListener('click', closeOrphanModal);
+document.getElementById('orphanModal').addEventListener('click', e => {{
+  if (e.target === document.getElementById('orphanModal')) closeOrphanModal();
+}});
+document.getElementById('orphanSearch').addEventListener('input', renderOrphanTable);
+document.querySelectorAll('#orphanTable th').forEach(th => {{
+  th.addEventListener('click', () => {{
+    if (orphanSortCol === th.dataset.col) orphanSortAsc = !orphanSortAsc;
+    else {{ orphanSortCol = th.dataset.col; orphanSortAsc = ['start','end'].includes(th.dataset.col); }}
+    renderOrphanTable();
+  }});
+}});
+
+// ── Downloads ──────────────────────────────────────────────────────────────
+function _download(text, filename, mime) {{
+  const blob = new Blob([text], {{type: mime || 'text/plain'}});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}}
+
+function downloadExtTsv() {{
+  const rows = D.ext_table || [];
+  const header = 'gene_id\\tpeak_id\\textension_bp\\n';
+  const body = rows.map(r => r.gene + '\\t' + r.peak + '\\t' + r.ext).join('\\n');
+  _download(header + body, S.output_file + '.extensions.tsv', 'text/tab-separated-values');
+}}
+
+function downloadOrphanBed(e) {{
+  if (e) e.stopPropagation();
+  if (!D.orphan_bed) return;
+  _download(D.orphan_bed, 'orphan_peaks.bed', 'text/plain');
+}}
+
+document.getElementById('extDownloadBtn').addEventListener('click', downloadExtTsv);
+document.getElementById('orphanDownloadBtn').addEventListener('click', downloadOrphanBed);
+
 // ── Charts ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {{
+  const extStats = document.getElementById('extStatsLabel');
+  if (extStats) {{
+    const hasExt = Number(S.n_extended || 0) > 0;
+    extStats.innerHTML = hasExt
+      ? `Min: <strong>${{S.min_ext}}</strong> bp &nbsp; Median: <strong>${{S.median_ext}}</strong> bp &nbsp; Max: <strong>${{S.max_ext}}</strong> bp`
+      : 'No extension statistics available';
+  }}
+
   if (window.CHARTJS_FAILED || typeof Chart === 'undefined') {{
     document.getElementById('extNA').style.display = 'flex';
     document.getElementById('covNA').style.display = 'flex';
@@ -754,7 +1218,17 @@ document.addEventListener('DOMContentLoaded', function() {{
         scales: {{
           x: {{
             title: {{display:true, text:'Extension length (bp)', padding:{{top:6}}}},
-            ticks: {{maxTicksLimit: 8, maxRotation: 0}},
+            ticks: {{
+              maxTicksLimit: 8,
+              maxRotation: 0,
+              callback: function(value) {{
+                const raw = Number(this.getLabelForValue(value));
+                if (!isFinite(raw)) return '';
+                const base = raw >= 10000 ? 1000 : 100;
+                const rounded = Math.round(raw / base) * base;
+                return rounded.toLocaleString();
+              }}
+            }},
             grid: {{display: false}}
           }},
           y: {{
@@ -876,10 +1350,10 @@ document.addEventListener('DOMContentLoaded', function() {{
       <tbody>`;
 
   rows.forEach(r => {{
-    html += `<tr><td>${{r.label.split('/').pop()}}</td>`;
+    html += `<tr><td>${{escHtml(r.label.split('/').pop())}}</td>`;
     keys.forEach((k, i) => {{
-      const v   = r[k]       ?? '—';
-      const pct = pcts[i] ? (r[pcts[i]] ?? null) : null;
+      const v   = (r[k] === null || r[k] === undefined) ? '—' : r[k];
+      const pct = pcts[i] ? ((r[pcts[i]] === null || r[pcts[i]] === undefined) ? null : r[pcts[i]]) : null;
       if (pct !== null) {{
         html += `<td><div class="pct-bar">
           <span>${{v.toLocaleString()}}</span>
@@ -907,13 +1381,127 @@ document.addEventListener('DOMContentLoaded', function() {{
   document.getElementById('mappingSection').innerHTML = html;
 }})();
 
-// ── Command-line args ──────────────────────────────────────────────────────
+// ── Extension parameter (--maxdist) ───────────────────────────────────────
+(function buildExtensionParamSection() {{
+  const F = D.fix_info || {{}};
+  const E = F.extension_param || {{}};
+  const mode = String(E.mode || '').toLowerCase();
+  const eff = E.effective_value_bp;
+  const user = E.user_value_bp;
+  const q = E.auto_quantile;
+
+  const hasData =
+    (mode === 'user' || mode === 'auto') ||
+    (eff !== null && eff !== undefined) ||
+    (user !== null && user !== undefined);
+  if (!hasData) {{
+    const empty = document.getElementById('extensionParamSummary');
+    if (empty) empty.innerHTML = '<p>No extension parameter metadata available.</p>';
+    return;
+  }}
+
+  let rows = '';
+  if (mode === 'user') {{
+    rows += `<p><strong>Selection mode:</strong> User-defined</p>`;
+    if (user !== null && user !== undefined) {{
+      rows += `<p><strong>User value:</strong> ${{Number(user).toLocaleString()}} bp</p>`;
+    }}
+  }} else if (mode === 'auto') {{
+    rows += `<p><strong>Selection mode:</strong> Auto-estimated</p>`;
+    if (q !== null && q !== undefined) {{
+      rows += `<p><strong>Rule:</strong> ${{Math.round(Number(q) * 100)}}th percentile of gene genomic span</p>`;
+    }}
+  }}
+
+  if (eff !== null && eff !== undefined) {{
+    rows += `<p><strong>Effective extension limit:</strong> ${{Number(eff).toLocaleString()}} bp</p>`;
+  }}
+
+  document.getElementById('extensionParamSummary').innerHTML = rows;
+}})();
+
+// ── Genome-fix summary box ─────────────────────────────────────────────────
+(function buildGenomeFixSection() {{
+  const F = D.fix_info || {{}};
+  const steps = F.steps || {{}};
+  const gf = steps.gene_features_added || {{}};
+  const mrna = steps.mRNA_to_transcript || {{}};
+  const c5 = steps.clip_5prime || {{}};
+
+  const hasFixMeta = !!(gf.applied || mrna.applied || c5.applied);
+  if (!hasFixMeta) return;
+
+  let meta = '<div class="args-meta"><ul>';
+  if (mrna.applied) meta += '<li>mRNA features were renamed to transcript features.</li>';
+  if (gf.applied) {{
+    const nAdded = Number(gf.n_genes_added || 0).toLocaleString('en-US');
+    const fileLabel = gf.gene_ids_file ? ` (list: ${{escHtml(gf.gene_ids_file)}})` : '';
+    meta += `<li>Added gene features: <strong>${{nAdded}}</strong>${{fileLabel}}</li>`;
+  }}
+  if (c5.applied) {{
+    const nEv = Number(c5.n_events || 0).toLocaleString('en-US');
+    const nGenes = Number(c5.n_genes_clipped || 0).toLocaleString('en-US');
+    const logLabel = c5.log_file ? ` (log: ${{escHtml(c5.log_file)}})` : '';
+    const listLabel = c5.gene_ids_file ? ` (genes: ${{escHtml(c5.gene_ids_file)}})` : '';
+    meta += `<li>5' clipping: <strong>${{nEv}}</strong> overlap events across <strong>${{nGenes}}</strong> genes${{logLabel}}${{listLabel}}</li>`;
+  }}
+  meta += '</ul></div>';
+
+  document.getElementById('genomeFixSection').innerHTML = `
+    <p class="section-title">Genome Fix Summary</p>
+    <div class="args-box">${{meta}}</div>`;
+}})();
+
+// ── Command-line args + rerun/log metadata ────────────────────────────────
 (function buildArgs() {{
-  if (!S.run_args) return;
+  const hasArgs = !!S.run_args;
+  const sections = D.log_sections || [];
+  const notes = D.log_notes || [];
+  const F = D.fix_info || {{}};
+  const skipped = Array.isArray(F.skipped_steps) ? F.skipped_steps : [];
+  const rerunMode = !!F.rerun_mode;
+  const hasSkipMeta = rerunMode && skipped.length > 0;
+  const hasMeta = hasSkipMeta || !!S.log_file || sections.length || notes.length || rerunMode;
+  if (!hasArgs && !hasMeta) return;
+
+  let meta = '';
+  if (hasMeta) {{
+    meta += '<div class="args-meta">';
+    if (rerunMode) {{
+      if (skipped.length) {{
+        meta += '<p><strong>Rerun mode:</strong> skipped cached steps</p><ul>';
+        skipped.forEach(x => {{
+          meta += `<li>${{escHtml(String(x))}}</li>`;
+        }});
+        meta += '</ul>';
+      }} else {{
+        meta += '<p><strong>Rerun mode:</strong> enabled, no cached steps were skipped.</p>';
+      }}
+    }}
+    if (S.log_file) meta += `<p><strong>Text log file:</strong> ${{escHtml(S.log_file)}}</p>`;
+    if (sections.length) meta += `<p><strong>Log stages:</strong> ${{escHtml(sections.join(' | '))}}</p>`;
+    meta += '</div>';
+  }}
+
   document.getElementById('argsSection').innerHTML = `
-    <p class="section-title">Command</p>
-    <div class="args-box"><pre>${{S.run_args}}</pre></div>`;
+    <p class="section-title">Command Used</p>
+    <div class="args-box"><pre>${{escHtml(S.run_args || 'N/A')}}</pre>${{meta}}</div>`;
 }})();
 </script>
 </body>
 </html>"""
+
+
+def _safe_json_for_html(data: dict) -> str:
+    """
+    Dump JSON and escape characters that could terminate a <script> block.
+    """
+    payload_json = json.dumps(data, indent=None, separators=(",", ":"))
+    return (
+        payload_json
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+        .replace("\\u2028", "\\\\u2028")
+        .replace("\\u2029", "\\\\u2029")
+    )

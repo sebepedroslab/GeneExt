@@ -17,6 +17,7 @@ import os
 from os import path
 
 import sys
+import json
 import pandas as pd
 
 parser = argparse.ArgumentParser(description=
@@ -78,6 +79,38 @@ parser.add_argument('-rerun','--rerun', action='store_true', help = 'If set, Gen
 
 def print_task(x):
     console.print('%s ...' % x,style = 'bold yellow', end = end)
+
+def write_report_fix_info(tempdir=None, info=None, verbose=0):
+    if not tempdir:
+        return None
+    if info is None:
+        info = {}
+    path = os.path.join(tempdir, 'report_fix_info.json')
+    try:
+        with open(path, 'w') as fh:
+            json.dump(info, fh, indent=2, sort_keys=True)
+        if verbose > 1:
+            print(f'Wrote fix metadata: {path}')
+    except Exception as e:
+        if verbose > 0:
+            print(f'Warning: could not write fix metadata to {path}: {e}')
+    return path
+
+def write_step_report_txt(tempdir=None, filename=None, lines=None, verbose=0):
+    if not tempdir or not filename:
+        return None
+    if lines is None:
+        lines = []
+    path = os.path.join(tempdir, filename)
+    try:
+        with open(path, 'w') as fh:
+            fh.write('\n'.join([str(x) for x in lines]) + '\n')
+        if verbose > 1:
+            print(f'Wrote step report: {path}')
+    except Exception as e:
+        if verbose > 0:
+            print(f'Warning: could not write step report to {path}: {e}')
+    return path
 
 
 def parse_input_format():
@@ -294,7 +327,13 @@ def report_estimate():
     # depends on whether it was called only multple files or ont 
 
 def PIPELINE_run_genefile_fix(genefile,infmt,tempdir,verbose,console):
-    # Returns the name of the fixed genome annotation file 
+    # Returns updated genome annotation file path + fix metadata
+
+    fix_meta = {
+        'mRNA_to_transcript': {'applied': False, 'summary_file': ''},
+        'gene_features_added': {'applied': False, 'n_genes_added': 0, 'gene_ids_file': '', 'summary_file': ''},
+    }
+    fix_summary_lines = [f'Input annotation: {genefile}', f'Format: {infmt}']
 
     # Given an input file, check if it's missing "gene" and "transcript" features, if so, fix it and output an updated file name 
     features = helper.get_featuretypes(genefile)
@@ -306,6 +345,9 @@ def PIPELINE_run_genefile_fix(genefile,infmt,tempdir,verbose,console):
             #new_genefile = tempdir + '/' + helper.append_before_ext(os.path.basename(genefile),'fixed')
             new_genefile = tempdir + '/' + 'genome.fixed.' + infmt
             helper.mRNA2transcript(infile = genefile,outfile = new_genefile, verbose = verbose)
+            fix_meta['mRNA_to_transcript']['applied'] = True
+            fix_summary_lines.append('mRNA_to_transcript: applied')
+            fix_summary_lines.append(f'output_file: {new_genefile}')
             genefile = new_genefile
             if verbose > 0:
                 print("Added transcript features. New file name: %s" % genefile)
@@ -319,13 +361,39 @@ def PIPELINE_run_genefile_fix(genefile,infmt,tempdir,verbose,console):
         new_genefile = tempdir + '/' + 'genome.fixed.' + infmt
 
         #genefilewgenes = tempdir + '/' + genefile.split('/')[-1].replace('.' + infmt,'_addgenes.' + infmt)
-        helper.add_gene_features(infile = genefile,outfile = new_genefile,infmt = infmt,verbose = verbose)
+        added_genes = helper.add_gene_features(infile = genefile,outfile = new_genefile,infmt = infmt,verbose = verbose) or []
+        fix_meta['gene_features_added']['applied'] = True
+        fix_meta['gene_features_added']['n_genes_added'] = len(set(added_genes))
+        fix_summary_lines.append('gene_features_added: applied')
+        fix_summary_lines.append(f'n_genes_added: {len(set(added_genes))}')
+        if added_genes:
+            added_genes_path = os.path.join(tempdir, 'fixed_genes_added.txt')
+            with open(added_genes_path, 'w') as fh:
+                for gid in sorted(set(added_genes)):
+                    fh.write(str(gid) + '\n')
+            fix_meta['gene_features_added']['gene_ids_file'] = added_genes_path
+            fix_summary_lines.append(f'gene_ids_file: {added_genes_path}')
         if verbose > 0:
             print('Fix done, annotation with gene features: %s' % new_genefile )
         genefile = new_genefile
         if verbose > 0:
             print("Added gene feature names. New file name: %s" % genefile)
-    return(genefile)
+
+    if not fix_meta['mRNA_to_transcript']['applied']:
+        fix_summary_lines.append('mRNA_to_transcript: not_applied')
+    if not fix_meta['gene_features_added']['applied']:
+        fix_summary_lines.append('gene_features_added: not_applied')
+    fix_summary_lines.append(f'final_annotation: {genefile}')
+    fix_summary_path = write_step_report_txt(
+        tempdir=tempdir,
+        filename='genome_fix.report.txt',
+        lines=fix_summary_lines,
+        verbose=verbose,
+    ) or ''
+    fix_meta['mRNA_to_transcript']['summary_file'] = fix_summary_path
+    fix_meta['gene_features_added']['summary_file'] = fix_summary_path
+
+    return(genefile, fix_meta)
 
 ########### Main #####################
 ######################################
@@ -562,14 +630,74 @@ if __name__ == "__main__":
     # Fix the input annotation 
     ####################################################
 
+    report_fix_info = {
+        'schema': 'v1',
+        'input_genefile': genefile,
+        'final_genefile': genefile,
+        'rerun_mode': bool(do_rerun),
+        'force_mode': bool(do_force),
+        'skipped_steps': [],
+        'extension_param': {
+            'name': '--maxdist',
+            'mode': 'user' if args.maxdist is not None else 'auto',
+            'user_value_bp': int(args.maxdist) if args.maxdist is not None else None,
+            'effective_value_bp': None,
+            'auto_quantile': float(config.gene_maxdist_quant) if args.maxdist is None else None,
+        },
+        'steps': {
+            'mRNA_to_transcript': {'applied': False, 'summary_file': ''},
+            'gene_features_added': {'applied': False, 'n_genes_added': 0, 'gene_ids_file': '', 'summary_file': ''},
+            'clip_5prime': {'applied': False, 'n_events': 0, 'n_genes_clipped': 0, 'log_file': '', 'gene_ids_file': '', 'summary_file': ''},
+        }
+    }
+
     if infmt in ['gff','gtf']:
         # check if the fixed version already exists:
         fixed_file_name = tempdir + '/' + genefile.replace('.','.fixed.')
         if do_rerun and os.path.exists(fixed_file_name) and not do_force:
             print('Found fixed genome file: %s' % fixed_file_name)
             genefile = fixed_file_name
+            report_fix_info['steps']['mRNA_to_transcript']['applied'] = True
+            report_fix_info['skipped_steps'].append('Genome annotation fix (reused existing fixed genome)')
+            added_genes_path = os.path.join(tempdir, 'fixed_genes_added.txt')
+            if os.path.exists(added_genes_path):
+                try:
+                    with open(added_genes_path, 'r') as fh:
+                        n_added = len([ln for ln in fh if ln.strip()])
+                    report_fix_info['steps']['gene_features_added'] = {
+                        'applied': n_added > 0,
+                        'n_genes_added': n_added,
+                        'gene_ids_file': added_genes_path,
+                        'summary_file': os.path.join(tempdir, 'genome_fix.report.txt'),
+                    }
+                except Exception:
+                    pass
+            else:
+                # Fallback for older runs where gene-ids file may be missing:
+                # recover gene-fix count from the textual fix summary.
+                fix_summary_path = os.path.join(tempdir, 'genome_fix.report.txt')
+                if os.path.exists(fix_summary_path):
+                    try:
+                        n_added = 0
+                        with open(fix_summary_path, 'r') as fh:
+                            for ln in fh:
+                                if ln.startswith('n_genes_added:'):
+                                    n_added = int(ln.split(':', 1)[1].strip())
+                                    break
+                        report_fix_info['steps']['gene_features_added'] = {
+                            'applied': n_added > 0,
+                            'n_genes_added': n_added,
+                            'gene_ids_file': '',
+                            'summary_file': fix_summary_path,
+                        }
+                    except Exception:
+                        pass
+            if not report_fix_info['steps']['mRNA_to_transcript'].get('summary_file'):
+                report_fix_info['steps']['mRNA_to_transcript']['summary_file'] = os.path.join(tempdir, 'genome_fix.report.txt')
         else:
-            genefile = PIPELINE_run_genefile_fix(genefile,infmt,tempdir = tempdir,verbose = verbose,console = console)
+            genefile, fix_meta = PIPELINE_run_genefile_fix(genefile,infmt,tempdir = tempdir,verbose = verbose,console = console)
+            report_fix_info['steps']['mRNA_to_transcript'] = fix_meta.get('mRNA_to_transcript', {'applied': False, 'summary_file': ''})
+            report_fix_info['steps']['gene_features_added'] = fix_meta.get('gene_features_added', {'applied': False, 'n_genes_added': 0, 'gene_ids_file': '', 'summary_file': ''})
 
         if do_longest:
             
@@ -592,6 +720,37 @@ if __name__ == "__main__":
             new_genefile = tempdir + '/' + 'genome.fixed.' + infmt
             clip_logfile = new_genefile + '.5clip.log'
             clip_out = helper.clip_5_overlaps(infile = genefile,outfile = new_genefile,logfile = clip_logfile,threads = threads,verbose = verbose)
+            clipped_genes = set()
+            for ln in clip_out:
+                parts = str(ln).split('\t')
+                if parts and parts[0].strip():
+                    clipped_genes.add(parts[0].strip())
+            clipped_genes_path = ''
+            if clipped_genes:
+                clipped_genes_path = os.path.join(tempdir, 'fiveprime_clipped_genes.txt')
+                with open(clipped_genes_path, 'w') as fh:
+                    for gid in sorted(clipped_genes):
+                        fh.write(str(gid) + '\n')
+            report_fix_info['steps']['clip_5prime'] = {
+                'applied': True,
+                'n_events': len(clip_out),
+                'n_genes_clipped': len(clipped_genes),
+                'log_file': clip_logfile,
+                'gene_ids_file': clipped_genes_path,
+                'summary_file': write_step_report_txt(
+                    tempdir=tempdir,
+                    filename='clip_5prime.report.txt',
+                    lines=[
+                        f'input_annotation: {genefile}',
+                        f'output_annotation: {new_genefile}',
+                        f'n_overlap_events: {len(clip_out)}',
+                        f'n_genes_clipped: {len(clipped_genes)}',
+                        f'clip_log_file: {clip_logfile}',
+                        f'gene_ids_file: {clipped_genes_path}' if clipped_genes_path else 'gene_ids_file: ',
+                    ],
+                    verbose=verbose,
+                ) or '',
+            }
             console.print("Fixed %s gene five-prime overlaps: %s -> %s\nLog: %s" % (len(clip_out),genefile,new_genefile,clip_logfile))
             genefile = new_genefile
             #helper.check_file_size(genefile,verbose = verbose )
@@ -644,8 +803,14 @@ if __name__ == "__main__":
             # if -m is not set, get a median gene size:
             if not maxdist:
                 maxdist = helper.get_quantile_gene_length(inputfile = genefile,fmt = infmt,q = config.gene_maxdist_quant)
+                report_fix_info['extension_param']['mode'] = 'auto'
+                report_fix_info['extension_param']['auto_quantile'] = float(config.gene_maxdist_quant)
                 if verbose:
                     print('Maximum allowed extension length is not set, getting median size of the gene - %s bp.' % str(round(maxdist)))
+            else:
+                report_fix_info['extension_param']['mode'] = 'user'
+                report_fix_info['extension_param']['user_value_bp'] = int(float(maxdist))
+                report_fix_info['extension_param']['auto_quantile'] = None
             # if maximum size for orphan peak is not set, set it to the median gene size:
             if do_orphan_merge:
                 if not orphan_maximum_size:
@@ -668,8 +833,10 @@ if __name__ == "__main__":
             if do_subsample:
                 print_task('Running bam subsampling')
                 # check if subsampled
-                if do_rerun and found_subsampled and not do_force and verbose > 0:
-                    print('Found %s! Skipping subsampling' % subsampled_bam)
+                if do_rerun and found_subsampled and not do_force:
+                    if verbose > 0:
+                        print('Found %s! Skipping subsampling' % subsampled_bam)
+                    report_fix_info['skipped_steps'].append('BAM subsampling (reused subsampled.bam)')
                 else:
                     nsubs = int(args.subsamplebam)
                     if bamfile:
@@ -695,6 +862,7 @@ if __name__ == "__main__":
                 if do_rerun and found_macs2 and not do_force:
                     if verbose > 0:
                         print('Found %s! Skipping peak calling with MACS2.' % peaksfile)
+                    report_fix_info['skipped_steps'].append('MACS2 peak calling (reused allpeaks.bed)')
                     console.print('done',style = 'bold green')
                 else:
                     helper.split_strands(bamfile,tempdir,verbose = verbose,threads = threads)
@@ -722,6 +890,7 @@ if __name__ == "__main__":
                 if do_rerun and found_covfile and not do_force:
                     if verbose > 0:
                         print('Found %s! Skipping peak filtering.' % covfile)
+                    report_fix_info['skipped_steps'].append('Peak filtering (reused cached coverage/filter outputs)')
                     console.print('done',style = 'bold green')
                 else:
                     # compute coverage for all the peaks:
@@ -775,6 +944,7 @@ if __name__ == "__main__":
         # 3. Extend genes 
             #console.print('======== Extending genes =======================',style = 'bold yellow',end = end)
             print_task('Extending genes')
+            report_fix_info['extension_param']['effective_value_bp'] = int(float(maxdist))
             helper.extend_genes(genefile = genefile,peaksfile = peaksfilt,outfile = outputfile,maxdist = int(maxdist),temp_dir = tempdir,verbose = verbose,extension_mode = config.extension_mode,infmt = infmt,outfmt = outfmt,tag = tag,clip_mode = clip_mode,write_original_transcript = config.write_original_transcript)
             console.print('done',style = 'bold green')
 
@@ -807,6 +977,9 @@ if __name__ == "__main__":
                 orphan_bed = tempdir + '/orphan.bed'
         else:
             orphan_bed = None
+        report_fix_info['final_genefile'] = genefile
+        write_report_fix_info(tempdir=tempdir, info=report_fix_info, verbose=verbose)
+
         n_genes = helper.get_number_of_genes(genefile, fmt=infmt)
         report_extensions(file_path=tempdir+'/extensions.tsv', orphan_bed=orphan_bed, n_genes=n_genes)
 

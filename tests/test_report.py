@@ -26,6 +26,7 @@ from geneext.report import (
     _log10_histogram,
     _parse_mapping_stats,
     _read_bed_col,
+    _safe_json_for_html,
     generate_html_report,
 )
 
@@ -239,6 +240,34 @@ class TestParseMappingStats:
         finally:
             os.unlink(path)
 
+    def test_parses_basename_header(self):
+        path = _write_text(
+            "before.gtf:\n"
+            "Total reads: 1000\n"
+            "Mapped reads: 900 (total: 90.0 %)\n"
+        )
+        try:
+            stats = _parse_mapping_stats(path)
+            assert len(stats) == 1
+            assert stats[0]["label"] == "before.gtf"
+            assert stats[0]["mapped_pct"] == 90.0
+        finally:
+            os.unlink(path)
+
+
+
+# ---------------------------------------------------------------------------
+# _safe_json_for_html
+# ---------------------------------------------------------------------------
+
+class TestSafeJsonForHtml:
+    def test_escapes_script_breakers(self):
+        payload = {"x": "</script><script>alert(1)</script>", "y": "a&b"}
+        out = _safe_json_for_html(payload)
+        assert "</script>" not in out
+        assert "\\u003c/script\\u003e" in out
+        assert "\\u0026" in out
+
 
 # ---------------------------------------------------------------------------
 # generate_html_report  (integration)
@@ -270,7 +299,7 @@ class TestGenerateHtmlReport:
     def test_creates_file(self):
         path, _ = self._run()
         assert os.path.exists(path)
-        assert path.endswith(".web_summary.html")
+        assert path.endswith(".Report.html")
 
     def test_file_is_non_empty(self):
         path, _ = self._run()
@@ -361,3 +390,204 @@ class TestGenerateHtmlReport:
         html = open(path).read()
         # mapping_stats key will be present in JSON but empty list
         assert '"mapping_stats":[]' in html or '"mapping_stats": []' in html
+
+
+    def test_orphan_peak_count_ignores_comments_and_trailing_newline(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        orphan_path = os.path.join(tmpdir, "orphan_merged.bed")
+        with open(orphan_path, "w") as fh:
+            fh.write("# comment\n")
+            fh.write("chr1\t10\t20\torph1\n")
+            fh.write("chr1\t30\t40\torph2")
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+        )
+        html = open(path).read()
+        assert '"n_orphan_peaks":2' in html or '"n_orphan_peaks": 2' in html
+
+    def test_fix_info_includes_clip_gene_list_path(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        fix_info = {
+            "schema": "v1",
+            "input_genefile": "input.gtf",
+            "final_genefile": "genome.fixed.gtf",
+            "steps": {
+                "mRNA_to_transcript": {"applied": False},
+                "gene_features_added": {
+                    "applied": True,
+                    "n_genes_added": 3,
+                    "gene_ids_file": "/tmp/fixed_genes_added.txt",
+                },
+                "clip_5prime": {
+                    "applied": True,
+                    "n_events": 12,
+                    "n_genes_clipped": 7,
+                    "log_file": "/tmp/genome.fixed.gtf.5clip.log",
+                    "gene_ids_file": "/tmp/fiveprime_clipped_genes.txt",
+                },
+            },
+        }
+        with open(os.path.join(tmpdir, "report_fix_info.json"), "w") as fh:
+            import json
+            json.dump(fix_info, fh)
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+        )
+        html = open(path).read()
+        assert "fiveprime_clipped_genes.txt" in html
+
+    def test_rerun_skipped_steps_are_embedded(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        fix_info = {
+            "schema": "v1",
+            "input_genefile": "input.gtf",
+            "final_genefile": "genome.fixed.gtf",
+            "rerun_mode": True,
+            "force_mode": False,
+            "skipped_steps": [
+                "MACS2 peak calling (reused allpeaks.bed)",
+                "Peak filtering (reused cached coverage/filter outputs)",
+            ],
+            "steps": {
+                "mRNA_to_transcript": {"applied": False},
+                "gene_features_added": {"applied": False, "n_genes_added": 0, "gene_ids_file": ""},
+                "clip_5prime": {"applied": False, "n_events": 0, "n_genes_clipped": 0, "log_file": "", "gene_ids_file": ""},
+            },
+        }
+        with open(os.path.join(tmpdir, "report_fix_info.json"), "w") as fh:
+            import json
+            json.dump(fix_info, fh)
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+        )
+        html = open(path).read()
+        assert "Rerun mode" in html
+        assert "reused allpeaks.bed" in html
+
+    def test_extension_param_section_for_user_value(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        fix_info = {
+            "schema": "v1",
+            "input_genefile": "input.gtf",
+            "final_genefile": "output.gtf",
+            "extension_param": {
+                "name": "--maxdist",
+                "mode": "user",
+                "user_value_bp": 1200,
+                "effective_value_bp": 1200,
+                "auto_quantile": None,
+            },
+            "steps": {
+                "mRNA_to_transcript": {"applied": False},
+                "gene_features_added": {"applied": False, "n_genes_added": 0, "gene_ids_file": ""},
+                "clip_5prime": {"applied": False, "n_events": 0, "n_genes_clipped": 0, "log_file": "", "gene_ids_file": ""},
+            },
+        }
+        with open(os.path.join(tmpdir, "report_fix_info.json"), "w") as fh:
+            import json
+            json.dump(fix_info, fh)
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+        )
+        html = open(path).read()
+        assert "Extension Parameter" in html
+        assert "User-defined" in html
+        assert '"mode":"user"' in html
+        assert '"effective_value_bp":1200' in html
+
+    def test_extension_param_section_for_auto_value(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        fix_info = {
+            "schema": "v1",
+            "input_genefile": "input.gtf",
+            "final_genefile": "output.gtf",
+            "extension_param": {
+                "name": "--maxdist",
+                "mode": "auto",
+                "user_value_bp": None,
+                "effective_value_bp": 845,
+                "auto_quantile": 0.5,
+            },
+            "steps": {
+                "mRNA_to_transcript": {"applied": False},
+                "gene_features_added": {"applied": False, "n_genes_added": 0, "gene_ids_file": ""},
+                "clip_5prime": {"applied": False, "n_events": 0, "n_genes_clipped": 0, "log_file": "", "gene_ids_file": ""},
+            },
+        }
+        with open(os.path.join(tmpdir, "report_fix_info.json"), "w") as fh:
+            import json
+            json.dump(fix_info, fh)
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+        )
+        html = open(path).read()
+        assert "Extension Parameter" in html
+        assert "Auto-estimated" in html
+        assert '"mode":"auto"' in html
+        assert '"auto_quantile":0.5' in html
+        assert '"effective_value_bp":845' in html
+
+    def test_peak_flow_payload_and_section_present(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        with open(os.path.join(tmpdir, "allpeaks.bed"), "w") as fh:
+            fh.write("chr1\t10\t20\tp1\nchr1\t30\t40\tp2\nchr1\t50\t60\tp3\n")
+        with open(os.path.join(tmpdir, "allpeaks_noov_fcov.bed"), "w") as fh:
+            fh.write("chr1\t10\t20\tp1\nchr1\t30\t40\tp2\n")
+        with open(os.path.join(tmpdir, "orphan_merged.bed"), "w") as fh:
+            fh.write("chr1\t100\t120\torph1\n")
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+        )
+        html = open(path).read()
+        assert "Peak Filtering Flow" in html
+        assert '"peak_flow"' in html
+        assert '"initial_called":3' in html
+        assert '"passed_filtering":2' in html
