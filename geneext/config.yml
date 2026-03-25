@@ -18,5 +18,5 @@ default_tmp: tmp # default temporary directory
 do_estimate: False
 do_estimate_only: False
 do_fix_only: False
-do_report: False
+do_report: True
 do_mapping: False
