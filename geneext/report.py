@@ -576,7 +576,7 @@ def _render_html(data: dict, logo_b64: str = "", manual_figs: dict | None = None
 <title>GeneExt — {s['output_file']}</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
-:root{{font-size:17px}}
+:root{{font-size:19px}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
       background:#f0f2f5;color:#1a2332;min-height:100vh}}
 
@@ -639,6 +639,7 @@ main{{max-width:1200px;margin:28px auto;padding:0 24px}}
 .manual-fig img{{display:block;width:100%;height:auto}}
 .manual-fig .cap{{padding:8px 10px;font-size:.68rem;color:#5a7194;background:#f9fbff;border-top:1px solid #eef1f7}}
 .maxext-fig{{margin-top:12px}}
+.maxext-fig img{{width:130%;max-width:none;margin-left:-15%}}
 
 /* ── extension parameter section ────────────────────────────────────────── */
 .ext-param-layout{{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:20px;margin-bottom:28px}}
@@ -963,11 +964,9 @@ function fmtInt(value) {{
 (function buildRunStatus() {{
   const warnings = [];
   if (S.orphan_warning) {{
-    const orphanPct = Math.round(Number(S.orphan_gene_fraction || 0) * 100);
-    const thrPct = Math.round(Number(S.orphan_warn_fraction || 0) * 100);
     warnings.push(
       `Too many orphan peaks: ${{fmtInt(S.n_orphan_peaks)}} orphan peaks/clusters ` +
-      `vs ${{fmtInt(S.n_genes)}} input genes (${{orphanPct}}% > ${{thrPct}}%).`
+      `vs ${{fmtInt(S.n_genes)}} input genes.`
     );
   }}
 
@@ -1072,8 +1071,7 @@ const CARD_GROUPS = [
     : '';
   const warningNote = orphanWarn
     ? `<div class="flow-warn">&#9888; <strong>Too many orphan peaks.</strong>
-         ${{fmt(PF.orphan_count)}} orphan peaks vs ${{S.n_genes.toLocaleString()}} input genes
-         (${{Math.round(orphanFrac * 100)}}% > ${{Math.round(orphanThr * 100)}}%).</div>`
+         ${{fmt(PF.orphan_count)}} orphan peaks vs ${{S.n_genes.toLocaleString()}} input genes.</div>`
     : '';
 
   document.getElementById('peakFlowSection').innerHTML = `

@@ -27,8 +27,7 @@ python geneext.py -g test_data/annotation.gtf -b test_data/alignments.bam -o res
 ```
 
 
-This should generate `result.gtf` file and interactive HTML report `result.gtf.Report.html`.  
-
+This should generate `result.gtf` file and interactive HTML report [result.gtf.Report.html](result.gtf.Report.html)
 
 The resulting gtf file will contain:  
 	- input features - untouched   
