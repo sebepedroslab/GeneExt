@@ -652,13 +652,40 @@ if __name__ == "__main__":
     }
 
     if infmt in ['gff','gtf']:
-        # check if the fixed version already exists:
-        fixed_file_name = tempdir + '/' + genefile.replace('.','.fixed.')
-        if do_rerun and os.path.exists(fixed_file_name) and not do_force:
+        # check if a fixed version already exists (rerun cache reuse)
+        fixed_candidates = [
+            os.path.join(tempdir, f'genome.fixed.{infmt}'),
+            os.path.join(tempdir, os.path.basename(genefile).replace('.', '.fixed.')),
+            os.path.join(tempdir, genefile.replace('.', '.fixed.')),
+        ]
+        fixed_file_name = next((p for p in fixed_candidates if os.path.exists(p)), None)
+        if do_rerun and fixed_file_name and not do_force:
             print('Found fixed genome file: %s' % fixed_file_name)
             genefile = fixed_file_name
-            report_fix_info['steps']['mRNA_to_transcript']['applied'] = True
             report_fix_info['skipped_steps'].append('Genome annotation fix (reused existing fixed genome)')
+            fix_summary_path = os.path.join(tempdir, 'genome_fix.report.txt')
+            if os.path.exists(fix_summary_path):
+                try:
+                    mrna_applied = False
+                    n_added = 0
+                    with open(fix_summary_path, 'r') as fh:
+                        for ln in fh:
+                            if ln.startswith('mRNA_to_transcript:'):
+                                mrna_applied = 'applied' in ln
+                            elif ln.startswith('n_genes_added:'):
+                                n_added = int(ln.split(':', 1)[1].strip())
+                    report_fix_info['steps']['mRNA_to_transcript'] = {
+                        'applied': mrna_applied,
+                        'summary_file': fix_summary_path,
+                    }
+                    report_fix_info['steps']['gene_features_added'] = {
+                        'applied': n_added > 0,
+                        'n_genes_added': n_added,
+                        'gene_ids_file': '',
+                        'summary_file': fix_summary_path,
+                    }
+                except Exception:
+                    pass
             added_genes_path = os.path.join(tempdir, 'fixed_genes_added.txt')
             if os.path.exists(added_genes_path):
                 try:
@@ -672,10 +699,9 @@ if __name__ == "__main__":
                     }
                 except Exception:
                     pass
-            else:
+            elif not report_fix_info['steps']['gene_features_added'].get('applied'):
                 # Fallback for older runs where gene-ids file may be missing:
                 # recover gene-fix count from the textual fix summary.
-                fix_summary_path = os.path.join(tempdir, 'genome_fix.report.txt')
                 if os.path.exists(fix_summary_path):
                     try:
                         n_added = 0

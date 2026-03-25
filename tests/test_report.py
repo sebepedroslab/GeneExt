@@ -591,3 +591,52 @@ class TestGenerateHtmlReport:
         assert '"peak_flow"' in html
         assert '"initial_called":3' in html
         assert '"passed_filtering":2' in html
+
+    def test_orphan_warning_is_triggered_when_fraction_exceeded(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        with open(os.path.join(tmpdir, "allpeaks.bed"), "w") as fh:
+            fh.write("chr1\t10\t20\tp1\n")
+        with open(os.path.join(tmpdir, "allpeaks_noov_fcov.bed"), "w") as fh:
+            fh.write("chr1\t10\t20\tp1\n")
+        with open(os.path.join(tmpdir, "orphan_merged.bed"), "w") as fh:
+            for i in range(10):
+                fh.write(f"chr1\t{i*10}\t{i*10+5}\torph{i}\n")
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+            orphan_warn_fraction=0.01,
+        )
+        html = open(path).read()
+        assert '"orphan_warning":true' in html
+        assert "Too many orphan peaks" in html
+
+    def test_orphan_warning_not_triggered_when_below_fraction(self):
+        tmpdir = _make_tmpdir_with_data(n_ext=10)
+        with open(os.path.join(tmpdir, "allpeaks.bed"), "w") as fh:
+            fh.write("chr1\t10\t20\tp1\n")
+        with open(os.path.join(tmpdir, "allpeaks_noov_fcov.bed"), "w") as fh:
+            fh.write("chr1\t10\t20\tp1\n")
+        with open(os.path.join(tmpdir, "orphan_merged.bed"), "w") as fh:
+            fh.write("chr1\t10\t15\torph1\n")
+            fh.write("chr1\t20\t25\torph2\n")
+
+        output_base = tempfile.mktemp(suffix=".gtf")
+        path = generate_html_report(
+            tempdir=tmpdir,
+            outputfile=output_base,
+            genefile="test_data/annotation.gtf",
+            infmt="gtf",
+            coverage_percentile=25,
+            do_estimate=False,
+            n_genes=400,
+            orphan_warn_fraction=0.01,
+        )
+        html = open(path).read()
+        assert '"orphan_warning":false' in html

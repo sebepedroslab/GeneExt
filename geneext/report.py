@@ -115,6 +115,15 @@ def _count_bam_reads(bam_path: str) -> int:
     return 0
 
 
+def _read_image_b64(path: str) -> str:
+    """Read an image file as base64 string (empty when unavailable)."""
+    try:
+        with open(path, "rb") as fh:
+            return base64.b64encode(fh.read()).decode()
+    except Exception:
+        return ""
+
+
 def _get_reads_info(tempdir: str) -> dict:
     """
     Return the number of reads used for peak calling and whether the BAM was subsampled.
@@ -340,6 +349,7 @@ def generate_html_report(
     do_estimate: bool = False,
     n_genes: int = 0,
     run_args: str = "",
+    orphan_warn_fraction: float = 0.10,
 ) -> str:
     """
     Build the web-summary HTML and write it next to the output annotation.
@@ -355,6 +365,8 @@ def generate_html_report(
     do_estimate        : whether mapping estimation was run
     n_genes            : total gene count in the original annotation
     run_args           : command-line string for display in the report
+    orphan_warn_fraction: warning threshold for orphan peaks relative to input
+                         genes (warn if orphan_peaks > fraction * n_genes)
     """
     # ── Extension lengths + table ─────────────────────────────────────────────
     ext_path = os.path.join(tempdir, "extensions.tsv")
@@ -378,13 +390,12 @@ def generate_html_report(
             pass
 
     # ── Logo (embedded as base64 for self-contained HTML) ────────────────────
-    logo_b64 = ""
-    logo_path = os.path.join(os.path.dirname(__file__), "..", "img", "logo.png")
-    try:
-        with open(logo_path, "rb") as _f:
-            logo_b64 = base64.b64encode(_f.read()).decode()
-    except Exception:
-        pass
+    img_dir = os.path.join(os.path.dirname(__file__), "..", "img")
+    logo_b64 = _read_image_b64(os.path.join(img_dir, "logo.png"))
+    manual_figs = {
+        "max_ext": _read_image_b64(os.path.join(img_dir, "max_ext.png")),
+        "peak_filtering": _read_image_b64(os.path.join(img_dir, "peak_filtering.png")),
+    }
 
     n_extended  = len(ext_lengths)
     pct_extended = round(n_extended / n_genes * 100, 1) if n_genes > 0 else 0.0
@@ -393,7 +404,7 @@ def generate_html_report(
     mean_ext     = round(float(np.mean(ext_lengths)),   1) if ext_lengths else 0.0
     max_ext      = round(float(np.max(ext_lengths)),    1) if ext_lengths else 0.0
 
-    ext_labels, ext_counts = _histogram(ext_lengths, n_bins=40)
+    ext_labels, ext_counts = _histogram(ext_lengths, n_bins=100)
 
     # ── Peak coverages ───────────────────────────────────────────────────────
     genic_cov = _read_bed_col(os.path.join(tempdir, "genic_peaks.bed"),   6)
@@ -486,6 +497,11 @@ def generate_html_report(
     if ("--subsamplebam" in cmd_low) or ("-subsamplebam" in cmd_low):
         reads_info["subsampled"] = True
 
+    orphan_gene_fraction = (n_orphan_merged / n_genes) if n_genes > 0 else None
+    orphan_warning = bool(
+        n_genes > 0 and n_orphan_merged > (float(orphan_warn_fraction) * float(n_genes))
+    )
+
     payload = {
         "summary": {
             "n_genes":        n_genes,
@@ -498,6 +514,9 @@ def generate_html_report(
             "n_genic_peaks":  len(genic_cov),
             "n_noov_peaks":   len(noov_cov),
             "n_orphan_peaks": n_orphan_merged,
+            "orphan_warn_fraction": orphan_warn_fraction,
+            "orphan_gene_fraction": orphan_gene_fraction,
+            "orphan_warning": orphan_warning,
             "cov_percentile": coverage_percentile,
             "cov_threshold":  count_threshold,
             "n_reads":        reads_info["n_reads"],
@@ -526,7 +545,7 @@ def generate_html_report(
         "fix_info": fix_info,
     }
 
-    html = _render_html(payload, logo_b64=logo_b64)
+    html = _render_html(payload, logo_b64=logo_b64, manual_figs=manual_figs)
     report_path = outputfile + ".Report.html"
     with open(report_path, "w") as fh:
         fh.write(html)
@@ -537,9 +556,12 @@ def generate_html_report(
 # HTML template
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _render_html(data: dict, logo_b64: str = "") -> str:
+def _render_html(data: dict, logo_b64: str = "", manual_figs: dict | None = None) -> str:
     payload_json = _safe_json_for_html(data)
     s = data["summary"]
+    manual_figs = manual_figs or {}
+    max_ext_b64 = manual_figs.get("max_ext", "")
+    peak_filter_b64 = manual_figs.get("peak_filtering", "")
     logo_html = (
         f'<img src="data:image/png;base64,{logo_b64}"'
         f' style="display:block">'
@@ -613,14 +635,27 @@ main{{max-width:1200px;margin:28px auto;padding:0 24px}}
 .chart-card h3{{font-size:.85rem;font-weight:700;color:#1a2332;margin-bottom:4px}}
 .chart-card p{{font-size:.72rem;color:#8695a8;margin-bottom:14px}}
 .chart-wrap{{position:relative;height:260px}}
+.manual-fig{{margin-top:10px;border:1px solid #dce3ee;border-radius:8px;overflow:hidden;background:#fff}}
+.manual-fig img{{display:block;width:100%;height:auto}}
+.manual-fig .cap{{padding:8px 10px;font-size:.68rem;color:#5a7194;background:#f9fbff;border-top:1px solid #eef1f7}}
+.maxext-fig{{margin-top:12px}}
 
 /* ── extension parameter section ────────────────────────────────────────── */
 .ext-param-layout{{display:grid;grid-template-columns:minmax(260px,1fr) 2fr;gap:20px;margin-bottom:28px}}
-@media(max-width:900px){{.ext-param-layout{{grid-template-columns:1fr}}}}
+@media(max-width:1150px){{.ext-param-layout{{grid-template-columns:1fr}}}}
 .ext-param-card{{background:#fff;border-radius:12px;padding:18px 20px;
                  box-shadow:0 1px 4px rgba(0,0,0,.08)}}
 .ext-param-card h3{{font-size:.85rem;font-weight:700;color:#1a2332;margin-bottom:6px}}
 .ext-param-card p{{font-size:.78rem;color:#5a7194;line-height:1.55;margin:4px 0}}
+
+/* ── shared widget-card styling (matches summary cards look) ───────────── */
+.widget-card{{border:1px solid #dce3ee;border-top:3px solid var(--accent,#00b4d8)}}
+.widget-accent-teal{{--accent:#00b4d8}}
+.widget-accent-green{{--accent:#06d6a0}}
+.widget-accent-blue{{--accent:#4d9ef5}}
+.widget-accent-purple{{--accent:#a55eea}}
+.widget-accent-red{{--accent:#ee5a6f}}
+.widget-accent-orange{{--accent:#ff9f43}}
 
 /* ── peak-flow diagram ───────────────────────────────────────────────────── */
 .flow-card{{background:#fff;border-radius:12px;padding:20px 22px;
@@ -640,6 +675,8 @@ main{{max-width:1200px;margin:28px auto;padding:0 24px}}
 .flow-arrow{{color:#8fa1b8;font-size:1.1rem;font-weight:700;line-height:1}}
 .flow-arrow.down{{margin-left:0}}
 .flow-branch{{margin-top:8px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#5a7194;font-size:.75rem;text-align:center}}
+.flow-warn{{margin-bottom:12px;padding:10px 12px;border:1px solid #ffd7dc;border-top:3px solid #ee5a6f;
+            border-radius:10px;background:#fff5f6;color:#7a2f39;font-size:.76rem;line-height:1.45}}
 
 /* ── mapping table ───────────────────────────────────────────────────────── */
 .table-card{{background:#fff;border-radius:12px;padding:20px 22px;
@@ -670,6 +707,14 @@ td.num{{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}}
 .args-meta p{{margin:2px 0}}
 .args-meta ul{{margin:8px 0 0 16px;padding:0}}
 .args-meta li{{margin:2px 0}}
+
+/* ── run status pane ─────────────────────────────────────────────────────── */
+.status-box{{padding:14px 18px;font-size:.8rem;line-height:1.5;color:#2d3e50}}
+.status-box strong{{font-size:.84rem}}
+.status-box ul{{margin:8px 0 0 18px;padding:0}}
+.status-box li{{margin:2px 0}}
+.status-ok{{background:#f3fbf6;color:#2f6b46;border-color:#cfead8;border-top-color:#2f8f46}}
+.status-warn{{background:#fff5f6;color:#7a2f39;border-color:#ffd7dc;border-top-color:#ee5a6f}}
 
 /* ── footer ──────────────────────────────────────────────────────────────── */
 footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
@@ -733,7 +778,6 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
     <div class="run-meta">
       <div>Output: <strong>{s['output_file']}</strong></div>
       <div>Input: {s['input_file']}</div>
-      {('<div style="color:#2f8f46;font-weight:700">Genome annotation fixed</div>' if s.get('genome_fixed') else '')}
       <div>{s['run_date']}</div>
     </div>
   </div>
@@ -741,8 +785,12 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
 
 <main>
 
+  <!-- ── Run status ─────────────────────────────────────────────────────── -->
+  <div id="reportStatusSection"></div>
+
   <!-- ── Command args ──────────────────────────────────────────────────── -->
   <div id="argsSection"></div>
+  <div id="executionSummarySection"></div>
   <div id="genomeFixSection"></div>
 
   <!-- ── Summary cards ─────────────────────────────────────────────────── -->
@@ -752,13 +800,18 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
   <!-- ── Extension parameter + extension distribution ──────────────────── -->
   <p class="section-title">Extension Parameter</p>
   <div class="ext-param-layout">
-    <div class="ext-param-card">
-      <h3>Extension limit (`-m` / `--maxdist`)</h3>
+    <div class="ext-param-card widget-card widget-accent-orange">
+      <h3>Maximal extension length (<code>-m</code> / <code>--maxdist</code>)</h3>
       <div id="extensionParamSummary" class="args-meta"></div>
+      {(
+        '<div class="manual-fig maxext-fig"><img alt="Maximal extension length explainer" src="data:image/png;base64,'
+        + max_ext_b64
+        + '"><div class="cap">Maximal extension length (<code>-m</code>) shown with the parameter context on the left.</div></div>'
+      ) if max_ext_b64 else ''}
     </div>
-    <div class="chart-card">
-      <h3>Gene-extension length distribution</h3>
-      <p>Number of base-pairs each gene was extended at its 3&prime; end</p>
+    <div class="chart-card widget-card widget-accent-blue">
+      <h3>3&prime;-extension length distribution</h3>
+      <p>Number of base-pairs each gene model was extended at its 3&prime; end</p>
       <p id="extStatsLabel" style="font-size:.72rem;color:#5a7194;margin-bottom:10px"></p>
       <div class="chart-wrap">
         <canvas id="extChart"></canvas>
@@ -774,10 +827,10 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
   <div class="peak-flow-layout">
     <div id="peakFlowSection"></div>
     <div class="chart-card">
-      <h3>Peak-coverage distribution (log&#x2081;&#x2080;)</h3>
+      <h3>Peak coverage filtering (log&#x2081;&#x2080;)</h3>
       <p>
-        <span style="color:#ff6384">&#9632;</span> Genic peaks &nbsp;
-        <span style="color:#4d9ef5">&#9632;</span> Non-overlapping peaks
+        <span style="color:#ff6384">&#9632;</span> Genic peaks (reference) &nbsp;
+        <span style="color:#4d9ef5">&#9632;</span> Intergenic peaks (candidates)
         <span id="thrLabel"></span>
       </p>
       <div class="chart-wrap">
@@ -786,11 +839,25 @@ footer{{text-align:center;font-size:.7rem;color:#aab4c0;padding:20px 0 32px}}
           <span>&#9888;</span>No coverage data available
         </div>
       </div>
+      {(
+        '<div class="manual-fig"><img alt="Peak filtering explainer" src="data:image/png;base64,'
+        + peak_filter_b64
+        + '"><div class="cap">Intergenic peak filtering using <code>--peak_perc</code>.</div></div>'
+      ) if peak_filter_b64 else ''}
     </div>
   </div>
 
   <!-- ── Mapping table (only if --estimate) ────────────────────────────── -->
   <div id="mappingSection"></div>
+
+  <!-- ── Citation ───────────────────────────────────────────────────────── -->
+  <p class="section-title">Citation</p>
+  <div class="args-box widget-card widget-accent-purple">
+    <p style="font-size:.84rem;line-height:1.65;color:#2d3e50;margin:0">
+      Grygoriy Zolotarov, Xavier Grau-Bov&eacute;, Arnau Seb&eacute;-Pedr&oacute;s, GeneExt: a gene model extension tool for enhanced single-cell RNA-seq analysis, <em>Bioinformatics</em>, Volume 42, Issue 3, March 2026, btag094,
+      <a href="https://doi.org/10.1093/bioinformatics/btag094" target="_blank" rel="noopener noreferrer">https://doi.org/10.1093/bioinformatics/btag094</a>
+    </p>
+  </div>
 
 </main>
 
@@ -884,16 +951,49 @@ const readsLabel = S.n_reads
 const readsHint = S.subsampled
   ? '<div style="font-size:.62rem;color:#ff9f43;margin-top:4px">&#9888; BAM was subsampled</div>'
   : '';
+const orphanWarnHint = S.orphan_warning
+  ? '<div style="font-size:.62rem;color:#ee5a6f;margin-top:4px">&#9888; Too many orphan peaks/clusters</div>'
+  : '';
 
 function fmtInt(value) {{
   return (typeof value === 'number') ? value.toLocaleString() : value;
 }}
 
+// ── Run status pane ─────────────────────────────────────────────────────────
+(function buildRunStatus() {{
+  const warnings = [];
+  if (S.orphan_warning) {{
+    const orphanPct = Math.round(Number(S.orphan_gene_fraction || 0) * 100);
+    const thrPct = Math.round(Number(S.orphan_warn_fraction || 0) * 100);
+    warnings.push(
+      `Too many orphan peaks: ${{fmtInt(S.n_orphan_peaks)}} orphan peaks/clusters ` +
+      `vs ${{fmtInt(S.n_genes)}} input genes (${{orphanPct}}% > ${{thrPct}}%).`
+    );
+  }}
+
+  if (warnings.length) {{
+    const items = warnings.map(w => `<li>${{escHtml(w)}}</li>`).join('');
+    document.getElementById('reportStatusSection').innerHTML = `
+      <p class="section-title">Run Status</p>
+      <div class="args-box widget-card status-box status-warn">
+        <strong>&#9888; Warnings detected</strong>
+        <ul>${{items}}</ul>
+      </div>`;
+  }} else {{
+    document.getElementById('reportStatusSection').innerHTML = `
+      <p class="section-title">Run Status</p>
+      <div class="args-box widget-card status-box status-ok">
+        <strong>&#10003; No warnings detected</strong>
+        <p style="margin-top:6px">No report-level warnings were detected.</p>
+      </div>`;
+  }}
+}})();
+
 const CARD_GROUPS = [
   {{
     title: 'Gene Extension',
     cards: [
-      {{value: S.n_extended, suffix: '/' + S.n_genes, label: 'Genes extended',     cls: 'accent-teal',   id: 'cardGenesExtended', clickable: true}},
+      {{value: fmtInt(S.n_extended), suffix: '/' + fmtInt(S.n_genes), label: 'Genes extended',     cls: 'accent-teal',   id: 'cardGenesExtended', clickable: true}},
       {{value: S.pct_extended, suffix: '%',            label: 'Extension rate',     cls: 'accent-green'}},
     ]
   }},
@@ -901,16 +1001,16 @@ const CARD_GROUPS = [
     title: 'Peaks',
     cards: [
       {{value: fmtInt(S.n_genic_peaks), suffix: '',  label: 'Genic peaks',              cls: 'accent-teal'}},
-      {{value: fmtInt(S.n_noov_peaks),  suffix: '',  label: 'Non-overlapping peaks',    cls: 'accent-blue'}},
-      ...(S.n_orphan_peaks ? [{{value: fmtInt(S.n_orphan_peaks), suffix: '', label: 'Orphan peak clusters', cls: 'accent-purple', id: 'cardOrphanPeaks', clickable: true,
-        extraHint: D.orphan_bed ? '<span class="btn-dl-sm" onclick="downloadOrphanBed(event)">&#8595; Download BED</span>' : ''}}] : []),
-      {{value: S.cov_percentile || '—', suffix: S.cov_percentile ? 'th pct' : '', label: 'Coverage percentile', cls: 'accent-red'}},
+      {{value: fmtInt(S.n_noov_peaks),  suffix: '',  label: 'Intergenic candidate peaks',    cls: 'accent-blue'}},
+      ...(S.n_orphan_peaks ? [{{value: fmtInt(S.n_orphan_peaks), suffix: '', label: 'Orphan peaks/clusters', cls: 'accent-purple', id: 'cardOrphanPeaks', clickable: true,
+        extraHint: (D.orphan_bed ? '<span class="btn-dl-sm" onclick="downloadOrphanBed(event)">&#8595; Download BED</span>' : '') + orphanWarnHint}}] : []),
+      {{value: S.cov_percentile || '—', suffix: S.cov_percentile ? 'th pct' : '', label: 'Intergenic filter (<code>--peak_perc</code>)', cls: 'accent-red'}},
     ]
   }},
   {{
     title: 'Reads',
     cards: [
-      {{value: readsLabel, suffix: '', label: 'Reads used for peak calling', cls: 'accent-teal', extraHint: readsHint}},
+      {{value: readsLabel, suffix: '', label: 'Reads used for MACS2 peak calling', cls: 'accent-teal', extraHint: readsHint}},
     ]
   }},
 ];
@@ -945,6 +1045,9 @@ const CARD_GROUPS = [
 // ── Peak filtering flow ───────────────────────────────────────────────────
 (function buildPeakFlow() {{
   const PF = D.peak_flow || {{}};
+  const orphanWarn = !!S.orphan_warning;
+  const orphanFrac = Number(S.orphan_gene_fraction || 0);
+  const orphanThr = Number(S.orphan_warn_fraction || 0);
   if (!PF.has_macs2_peaks) {{
     document.getElementById('peakFlowSection').innerHTML = `
       <div class="flow-card compact">
@@ -956,7 +1059,7 @@ const CARD_GROUPS = [
   const fmt = v => Number(v || 0).toLocaleString();
   const orphanNode = PF.orphan_enabled
     ? `<div class="flow-branch">
-         <span>Orphan option enabled (from filtered peaks)</span>
+         <span><code>--orphan</code> enabled (retained from intergenic filtered peaks)</span>
          <span class="flow-arrow down">&#8595;</span>
          <div class="flow-node accent-purple">
            <div class="n">${{fmt(PF.orphan_count)}}</div>
@@ -967,9 +1070,15 @@ const CARD_GROUPS = [
   const filteredNote = PF.filtered_file
     ? `<p style="font-size:.7rem;color:#8695a8;margin-top:8px">Filtered peaks source: ${{escHtml(PF.filtered_file)}}</p>`
     : '';
+  const warningNote = orphanWarn
+    ? `<div class="flow-warn">&#9888; <strong>Too many orphan peaks.</strong>
+         ${{fmt(PF.orphan_count)}} orphan peaks vs ${{S.n_genes.toLocaleString()}} input genes
+         (${{Math.round(orphanFrac * 100)}}% > ${{Math.round(orphanThr * 100)}}%).</div>`
+    : '';
 
   document.getElementById('peakFlowSection').innerHTML = `
     <div class="flow-card compact">
+      ${{warningNote}}
       <div class="flow-row">
         <div class="flow-node accent-teal">
           <div class="n">${{fmt(PF.initial_called)}}</div>
@@ -978,12 +1087,12 @@ const CARD_GROUPS = [
         <span class="flow-arrow down">&#8595;</span>
         <div class="flow-node accent-green">
           <div class="n">${{fmt(PF.passed_filtering)}}</div>
-          <div class="l">Passed filtering</div>
+          <div class="l">Intergenic peaks retained (<code>--peak_perc</code>)</div>
         </div>
         <span class="flow-arrow down">&#8595;</span>
         <div class="flow-node accent-blue">
           <div class="n">${{fmt(PF.assigned_to_genes)}}</div>
-          <div class="l">Assigned to genes</div>
+          <div class="l">Assigned to upstream genes</div>
         </div>
       </div>
       ${{orphanNode}}
@@ -1401,20 +1510,21 @@ document.addEventListener('DOMContentLoaded', function() {{
   }}
 
   let rows = '';
+  rows += `<p><strong>Parameter:</strong> <code>-m</code> / <code>--maxdist</code></p>`;
   if (mode === 'user') {{
     rows += `<p><strong>Selection mode:</strong> User-defined</p>`;
     if (user !== null && user !== undefined) {{
-      rows += `<p><strong>User value:</strong> ${{Number(user).toLocaleString()}} bp</p>`;
+      rows += `<p><strong>User-defined maximal extension length:</strong> ${{Number(user).toLocaleString()}} bp</p>`;
     }}
   }} else if (mode === 'auto') {{
     rows += `<p><strong>Selection mode:</strong> Auto-estimated</p>`;
     if (q !== null && q !== undefined) {{
-      rows += `<p><strong>Rule:</strong> ${{Math.round(Number(q) * 100)}}th percentile of gene genomic span</p>`;
+      rows += `<p><strong>Rule:</strong> ${{Math.round(Number(q) * 100)}}th percentile of gene genomic span (gene length quantile for <code>--maxdist</code>)</p>`;
     }}
   }}
 
   if (eff !== null && eff !== undefined) {{
-    rows += `<p><strong>Effective extension limit:</strong> ${{Number(eff).toLocaleString()}} bp</p>`;
+    rows += `<p><strong>Final maximal extension length:</strong> ${{Number(eff).toLocaleString()}} bp</p>`;
   }}
 
   document.getElementById('extensionParamSummary').innerHTML = rows;
@@ -1443,18 +1553,24 @@ document.addEventListener('DOMContentLoaded', function() {{
     const nGenes = Number(c5.n_genes_clipped || 0).toLocaleString('en-US');
     const logLabel = c5.log_file ? ` (log: ${{escHtml(c5.log_file)}})` : '';
     const listLabel = c5.gene_ids_file ? ` (genes: ${{escHtml(c5.gene_ids_file)}})` : '';
-    meta += `<li>5' clipping: <strong>${{nEv}}</strong> overlap events across <strong>${{nGenes}}</strong> genes${{logLabel}}${{listLabel}}</li>`;
+    meta += `<li>5' overlap clipping: <strong>${{nEv}}</strong> overlap events across <strong>${{nGenes}}</strong> genes${{logLabel}}${{listLabel}}</li>`;
   }}
   meta += '</ul></div>';
 
   document.getElementById('genomeFixSection').innerHTML = `
     <p class="section-title">Genome Fix Summary</p>
-    <div class="args-box">${{meta}}</div>`;
+    <div class="args-box widget-card widget-accent-green">${{meta}}</div>`;
 }})();
 
 // ── Command-line args + rerun/log metadata ────────────────────────────────
 (function buildArgs() {{
-  const hasArgs = !!S.run_args;
+  document.getElementById('argsSection').innerHTML = `
+    <p class="section-title">Command Used</p>
+    <div class="args-box widget-card widget-accent-blue"><pre>${{escHtml(S.run_args || 'N/A')}}</pre></div>`;
+}})();
+
+// ── Execution summary (rerun/log metadata) ───────────────────────────────
+(function buildExecutionSummary() {{
   const sections = D.log_sections || [];
   const notes = D.log_notes || [];
   const F = D.fix_info || {{}};
@@ -1462,30 +1578,27 @@ document.addEventListener('DOMContentLoaded', function() {{
   const rerunMode = !!F.rerun_mode;
   const hasSkipMeta = rerunMode && skipped.length > 0;
   const hasMeta = hasSkipMeta || !!S.log_file || sections.length || notes.length || rerunMode;
-  if (!hasArgs && !hasMeta) return;
+  if (!hasMeta) return;
 
-  let meta = '';
-  if (hasMeta) {{
-    meta += '<div class="args-meta">';
-    if (rerunMode) {{
-      if (skipped.length) {{
-        meta += '<p><strong>Rerun mode:</strong> skipped cached steps</p><ul>';
-        skipped.forEach(x => {{
-          meta += `<li>${{escHtml(String(x))}}</li>`;
-        }});
-        meta += '</ul>';
-      }} else {{
-        meta += '<p><strong>Rerun mode:</strong> enabled, no cached steps were skipped.</p>';
-      }}
+  let meta = '<div class="args-meta">';
+  if (rerunMode) {{
+    if (skipped.length) {{
+      meta += '<p><strong>Rerun mode:</strong> skipped cached steps</p><ul>';
+      skipped.forEach(x => {{
+        meta += `<li>${{escHtml(String(x))}}</li>`;
+      }});
+      meta += '</ul>';
+    }} else {{
+      meta += '<p><strong>Rerun mode:</strong> enabled, no cached steps were skipped.</p>';
     }}
-    if (S.log_file) meta += `<p><strong>Text log file:</strong> ${{escHtml(S.log_file)}}</p>`;
-    if (sections.length) meta += `<p><strong>Log stages:</strong> ${{escHtml(sections.join(' | '))}}</p>`;
-    meta += '</div>';
   }}
+  if (S.log_file) meta += `<p><strong>Text log file:</strong> ${{escHtml(S.log_file)}}</p>`;
+  if (sections.length) meta += `<p><strong>Log stages:</strong> ${{escHtml(sections.join(' | '))}}</p>`;
+  meta += '</div>';
 
-  document.getElementById('argsSection').innerHTML = `
-    <p class="section-title">Command Used</p>
-    <div class="args-box"><pre>${{escHtml(S.run_args || 'N/A')}}</pre>${{meta}}</div>`;
+  document.getElementById('executionSummarySection').innerHTML = `
+    <p class="section-title">Execution Summary</p>
+    <div class="args-box widget-card widget-accent-teal">${{meta}}</div>`;
 }})();
 </script>
 </body>
