@@ -30,9 +30,9 @@ python geneext.py -g test_data/annotation.gtf -b test_data/alignments.bam -o res
 This should generate `result.gtf` file and interactive HTML report [result.gtf.Report.html](result.gtf.Report.html)
 
 The resulting gtf file will contain:  
-	- input features - untouched   
-	- input transcripts extended - the 2nd column (source) changed to 'GeneExt'   
-	- inferred orphan peaks - exon,transcript/gene triplets per orphan cluster; 'GeneExt_orphan'  
+ * input features - untouched   
+ * input transcripts extended - the 2nd column (source) changed to `GeneExt`   
+ * inferred orphan peaks - exon,transcript/gene triplets per orphan cluster; the "source" field is `GeneExt_orphan`
 
 The updated features can be easily tracked by their source column (2nd):  
 
